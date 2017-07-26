@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <link rel="stylesheet" href="dist/leaflet.css">
+    <script type="text/javascript" src="dist/leaflet-src.js"></script>
+</head>
+
+<body>
+    <div id="map" style="position:absolute;left:0;top:0;bottom:0;right:0;overflow: hidden;width:100%;height:100%;"></div>
+    <script type="text/javascript">
+    L.CustomLayer = L.Renderer.extend({
+
+        initialize: function (options) {
+            L.Renderer.prototype.initialize.call(this, options);
+            this.options.padding = 0.1;
+            this.options.tileSize = 256;
+            this._url = 'http://mt{num}.google.cn/vt/lyrs={lyrs}&hl=zh-CN&gl=cn&s=Gal&z={z}&x={x}&y={y}';
+        },
+
+        onAdd: function (map) {
+
+            this._container = L.DomUtil.create('canvas', 'leaflet-zoom-animated');
+
+            var pane = map.getPane(this.options.pane);
+            pane.appendChild(this._container);
+
+            this._ctx = this._container.getContext('2d');
+
+            this._update();
+        },
+
+        onRemove: function (map) {
+            L.DomUtil.remove(this._container);
+        },
+
+        _update: function () {
+            if(this._map._animatingZoom && this._bounds) {
+                return;
+            }
+
+            L.Renderer.prototype._update.call(this);
+
+            var b = this._bounds,
+                container = this._container,
+                size = b.getSize(),
+                m = L.Browser.retina ? 2 : 1;
+
+            L.DomUtil.setPosition(container, b.min);
+
+            // set canvas size (also clearing it); use double size on retina
+            container.width = m * size.x;
+            container.height = m * size.y;
+            container.style.width = size.x + 'px';
+            container.style.height = size.y + 'px';
+
+            if(L.Browser.retina) {
+                this._ctx.scale(2, 2);
+            }
+
+            // translate so we use the same path coordinates after canvas element moves
+            this._ctx.translate(-b.min.x, -b.min.y);
+
+            // Tell paths to redraw themselves
+            this.fire('update');
+
+            this._draw();
+        },
+
+        _draw: function () {
+            var map = this._map;
+            var center = this._map.getCenter();
+            var zoom = this._map.getZoom();
+            this._level = {};
+            this._level.origin = map.project(map.unproject(map.getPixelOrigin()), zoom).round();
+            var pixelBounds = this._getTiledPixelBounds(center, zoom);
+            var tileRange = this._pxBoundsToTileRange(pixelBounds);
+            var tileCenter = tileRange.getCenter();
+            var queue = [];
+            for(var j = tileRange.min.y; j <= tileRange.max.y; j++) {
+                for(var i = tileRange.min.x; i <= tileRange.max.x; i++) {
+                    var coords = L.point(i, j);
+                    coords.z = zoom;
+                    queue.push(coords);
+                }
+            }
+            queue.sort(function (a, b) {
+                return a.distanceTo(tileCenter) - b.distanceTo(tileCenter);
+            });
+            for(i = 0; i < queue.length; i++) {
+                this._addTile(queue[i], this._ctx);
+            }
+        },
+
+        _addTile: function (coords, ctx) {
+            var tilePos = this._getTilePos(coords);
+
+            var tile = this.createTile(coords, null);
+
+            ctx.drawImage(tile, tilePos.x, tilePos.y, 256, 256);
+            // ctx.fillText(tile.innerHTML,tilePos.y,tilePos.x);
+        },
+
+        createTile: function (coords, done) {
+            var tile = document.createElement('img');     
+            tile.alt = '';
+            tile.src = this.getTileUrl(coords);
+            return tile;
+        },
+
+        getTileUrl: function (tilePoint) {
+            return L.Util.template(this._url, {
+                num: 2,
+                x: tilePoint.x,
+                y: tilePoint.y,
+                z: tilePoint.z,
+                lyrs: 'm' // m：路线图 t：地形图 p：带标签的地形图 s：卫星图 y：带标签的卫星图 h：标签层（路名、地名等）
+            })
+        },
+
+        _getTilePos: function (coords) {
+            return coords.scaleBy(this.getTileSize()).subtract(this._level.origin);
+        },
+
+        getTileSize: function () {
+            var s = this.options.tileSize;
+            return s instanceof L.Point ? s : L.point(s, s);
+        },
+
+        _getTiledPixelBounds: function (center, zoom) {
+            var map = this._map,
+                mapZoom = map._animatingZoom ? Math.max(map._animateToZoom, map.getZoom()) : map.getZoom(),
+                scale = map.getZoomScale(mapZoom, zoom),
+                pixelCenter = map.project(center, zoom).floor(),
+                halfSize = map.getSize().divideBy(scale * 2);
+
+            return L.bounds(pixelCenter.subtract(halfSize), pixelCenter.add(halfSize));
+        },
+
+        _pxBoundsToTileRange: function (bounds) {
+            var tileSize = L.point(256, 256);
+            return L.bounds(
+                bounds.min.unscaleBy(tileSize).floor(),
+                bounds.max.unscaleBy(tileSize).ceil().subtract([1, 1]));
+        }
+    });
+    </script>
+
+    <script type="text/javascript">
+    var mymap = L.map('map').setView([39.90923,116.397428], 8);
+    new L.CustomLayer({}).addTo(mymap);
+	L.marker([39.90923, 116.397428]).addTo(mymap)
+    // L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+    //     maxZoom: 18,
+    //     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+    //         '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+    //         'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+    //     id: 'mapbox.streets'
+    // }).addTo(mymap);
+    </script>
+</body>
+
+</html>
