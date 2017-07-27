@@ -1,18 +1,4 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>FullCanvasTileLayer</title>
-    <link rel="stylesheet" href="dist/leaflet.css">
-    <script type="text/javascript" src="dist/leaflet-src.js"></script>
-</head>
-
-<body>
-    <div id="map" style="position:absolute;left:0;top:0;bottom:0;right:0;overflow: hidden;width:100%;height:100%;"></div>
-    <script type="text/javascript">
-    L.CustomLayer = L.Renderer.extend({
+L.FullCanvasTileLayer = L.Renderer.extend({
 
         initialize: function (options) {
             L.Renderer.prototype.initialize.call(this, options);
@@ -154,20 +140,3 @@
                 bounds.max.unscaleBy(tileSize).ceil().subtract([1, 1]));
         }
     });
-    </script>
-
-    <script type="text/javascript">
-    var mymap = L.map('map').setView([39.90923, 116.397428], 8);
-    new L.CustomLayer({}).addTo(mymap);
-    L.marker([39.90923, 116.397428]).addTo(mymap)
-    // L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-    //     maxZoom: 18,
-    //     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-    //         '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-    //         'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-    //     id: 'mapbox.streets'
-    // }).addTo(mymap);
-    </script>
-</body>
-
-</html>
