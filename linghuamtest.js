@@ -135,6 +135,7 @@ L.FullCanvasTileLayer = L.Renderer.extend({
     },
 
     _draw: function () {
+    	this._ctx.clearRect(0, 0, this._container.width, this._container.height);
         var map = this._map;
         var center = this._map.getCenter();
         var zoom = this._map.getZoom();
