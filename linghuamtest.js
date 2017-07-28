@@ -36,7 +36,7 @@ L.FullCanvasTileLayer = L.Renderer.extend({
 
         // @option minZoom: Number = 0
         // The minimum zoom level down to which this layer will be displayed (inclusive).
-        minZoom: 0,
+        minZoom: 1,
 
         // @option maxZoom: Number = undefined
         // The maximum zoom level up to which this layer will be displayed (inclusive).
@@ -94,6 +94,8 @@ L.FullCanvasTileLayer = L.Renderer.extend({
 
         this._ctx = this._container.getContext('2d');
 
+        this._tiles = {};
+
         this._update();
     },
 
@@ -130,45 +132,97 @@ L.FullCanvasTileLayer = L.Renderer.extend({
 
         // Tell paths to redraw themselves
         this.fire('update');
+        try {
+            this._draw();
+        } catch(e) {
+            console.log(e);
+        }
 
-        this._draw();
     },
 
     _draw: function () {
-    	this._ctx.clearRect(0, 0, this._container.width, this._container.height);
         var map = this._map;
         var center = this._map.getCenter();
         var zoom = this._map.getZoom();
-        this._level = {};
-        this._level.origin = map.project(map.unproject(map.getPixelOrigin()), zoom).round();
-        var pixelBounds = this._getTiledPixelBounds(center, zoom);
+
+        var tileZoom = this._clampZoom(Math.round(zoom));
+        if((this.options.maxZoom !== undefined && tileZoom > this.options.maxZoom) ||
+            (this.options.minZoom !== undefined && tileZoom < this.options.minZoom)) {
+            tileZoom = undefined;
+        }
+
+        if(tileZoom === undefined) {
+            this._ctx.clearRect(0, 0, this._container.width, this._container.height);
+            return;
+        }
+        this._tileZoom = tileZoom;
+
+        var pixelBounds = this._getTiledPixelBounds(center, this._tileZoom);
         var tileRange = this._pxBoundsToTileRange(pixelBounds);
         var tileCenter = tileRange.getCenter();
         var queue = [];
+        var margin = this.options.keepBuffer;
+        var noPruneRange = new L.Bounds(tileRange.getBottomLeft().subtract([margin, -margin]),
+            tileRange.getTopRight().add([margin, -margin]));
+
+        // Sanity check: panic if the tile range contains Infinity somewhere.
+        if(!(isFinite(tileRange.min.x) &&
+                isFinite(tileRange.min.y) &&
+                isFinite(tileRange.max.x) &&
+                isFinite(tileRange.max.y))) { throw new Error('Attempted to load an infinite number of tiles'); }
+
+
+        for(var key in this._tiles) {
+            var c = this._tiles[key].coords;
+            if(c.z !== this._tileZoom || !noPruneRange.contains(new L.Point(c.x, c.y))) {
+                this._tiles[key].current = false;
+            }
+        }
+
+        // create a queue of coordinates to load tiles from
         for(var j = tileRange.min.y; j <= tileRange.max.y; j++) {
             for(var i = tileRange.min.x; i <= tileRange.max.x; i++) {
                 var coords = L.point(i, j);
-                coords.z = zoom;
-                queue.push(coords);
+                coords.z = this._tileZoom;
+                if(!this._isValidTile(coords)) { continue; }
+
+                //canvas不能缓存切片
+                // if(!this._tiles[this._tileCoordsToKey(coords)]) { 
+                    queue.push(coords);
+                // }
             }
         }
+
+        // sort tile queue to load tiles in order of their distance to center
         queue.sort(function (a, b) {
             return a.distanceTo(tileCenter) - b.distanceTo(tileCenter);
         });
-        for(i = 0; i < queue.length; i++) {
-            this.createTile(queue[i], L.Util.bind(this._tileReady, this, queue[i]));
+
+        if(queue.length) {
+            for(i = 0; i < queue.length; i++) {
+                this.createTile(queue[i], L.Util.bind(this._tileReady, this, queue[i]));
+            }
         }
+
     },
 
     createTile: function (coords, done) {
         var tile = new Image(),
             tilePos = this._getTilePos(coords),
+            key = this._tileCoordsToKey(coords),
             tileSrc = this.getTileUrl(coords);
 
         L.DomEvent.on(tile, 'load', L.Util.bind(this._tileOnLoad, this, tilePos, done, tile));
         L.DomEvent.on(tile, 'error', L.Util.bind(this._tileOnError, this, tilePos, done, tile));
 
         tile.src = tileSrc;
+
+        // save tile in cache
+        this._tiles[key] = {
+            el: tile,
+            coords: coords,
+            current: true
+        };
 
         return tile;
     },
@@ -236,6 +290,7 @@ L.FullCanvasTileLayer = L.Renderer.extend({
             done(null, tile);
         }
         var size = this.getTileSize();
+        this._ctx.clearRect(tilePos.x, tilePos.y, size.x, size.y);
         this._ctx.drawImage(tile, tilePos.x, tilePos.y, size.x, size.y);
     },
 
@@ -262,13 +317,110 @@ L.FullCanvasTileLayer = L.Renderer.extend({
         })
     },
 
-    _getTilePos: function (coords) {
-        return coords.scaleBy(this.getTileSize()).subtract(this._level.origin);
-    },
-
     getTileSize: function () {
         var s = this.options.tileSize;
         return s instanceof L.Point ? s : L.point(s, s);
+    },
+
+    _getTilePos: function (coords) {
+        var origin = this._map.project(this._map.unproject(this._map.getPixelOrigin()), this._tileZoom).round();
+        return coords.scaleBy(this.getTileSize()).subtract(origin);
+    },
+
+    _clampZoom: function (zoom) {
+        var options = this.options;
+
+        if(undefined !== options.minNativeZoom && zoom < options.minNativeZoom) {
+            return options.minNativeZoom;
+        }
+
+        if(undefined !== options.maxNativeZoom && options.maxNativeZoom < zoom) {
+            return options.maxNativeZoom;
+        }
+
+        return zoom;
+    },
+
+    _removeTilesAtZoom: function (zoom) {
+        for(var key in this._tiles) {
+            if(this._tiles[key].coords.z !== zoom) {
+                continue;
+            }
+            this._removeTile(key);
+        }
+    },
+
+    _removeAllTiles: function () {
+        for(var key in this._tiles) {
+            this._removeTile(key);
+        }
+    },
+
+    _removeTile: function (key) {
+        var tile = this._tiles[key];
+        if(!tile) { return; }
+        var size = this.getTileSize();
+        this._ctx.clearRect(tile.pos.x, tile.pos.y, size.x, size.y);
+
+        delete this._tiles[key];
+    },
+
+    _isValidTile: function (coords) {
+        var crs = this._map.options.crs;
+
+        if(!crs.infinite) {
+            var bounds = this._map.getPixelWorldBounds(this._tileZoom);
+            if(bounds) {
+                this._globalTileRange = this._pxBoundsToTileRange(bounds);
+            }
+            // don't load tile if it's out of bounds and not wrapped
+            var bounds = this._globalTileRange;
+            if((!crs.wrapLng && (coords.x < bounds.min.x || coords.x > bounds.max.x)) ||
+                (!crs.wrapLat && (coords.y < bounds.min.y || coords.y > bounds.max.y))) { return false; }
+        }
+
+        if(!this.options.bounds) { return true; }
+
+        // don't load tile if it doesn't intersect the bounds in options
+        var tileBounds = this._tileCoordsToBounds(coords);
+        return latLngBounds(this.options.bounds).overlaps(tileBounds);
+    },
+
+    _keyToBounds: function (key) {
+        return this._tileCoordsToBounds(this._keyToTileCoords(key));
+    },
+
+    // converts tile coordinates to its geographical bounds
+    _tileCoordsToBounds: function (coords) {
+
+        var map = this._map,
+            tileSize = this.getTileSize(),
+
+            nwPoint = coords.scaleBy(tileSize),
+            sePoint = nwPoint.add(tileSize),
+
+            nw = map.unproject(nwPoint, coords.z),
+            se = map.unproject(sePoint, coords.z),
+            bounds = new LatLngBounds(nw, se);
+
+        if(!this.options.noWrap) {
+            map.wrapLatLngBounds(bounds);
+        }
+
+        return bounds;
+    },
+
+    // converts tile coordinates to key for the tile cache
+    _tileCoordsToKey: function (coords) {
+        return coords.x + ':' + coords.y + ':' + coords.z;
+    },
+
+    // converts tile cache key to coordinates
+    _keyToTileCoords: function (key) {
+        var k = key.split(':'),
+            coords = new L.Point(+k[0], +k[1]);
+        coords.z = +k[2];
+        return coords;
     },
 
     _getTiledPixelBounds: function (center, zoom) {
