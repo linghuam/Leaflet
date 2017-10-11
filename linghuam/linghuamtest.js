@@ -176,6 +176,8 @@ L.FullCanvasTileLayer = L.Renderer.extend({
             var c = this._tiles[key].coords;
             if(c.z !== this._tileZoom || !noPruneRange.contains(new L.Point(c.x, c.y))) {
                 this._tiles[key].current = false;
+            } else{
+                this._tiles[key].current = true;
             }
         }
 
@@ -185,8 +187,7 @@ L.FullCanvasTileLayer = L.Renderer.extend({
                 var coords = L.point(i, j);
                 coords.z = this._tileZoom;
                 if(!this._isValidTile(coords)) { continue; }
-
-                //canvas不能缓存切片
+                
                 // if(!this._tiles[this._tileCoordsToKey(coords)]) { 
                     queue.push(coords);
                 // }
@@ -199,107 +200,77 @@ L.FullCanvasTileLayer = L.Renderer.extend({
         });
 
         if(queue.length) {
+            this.tileCount = queue.length;
             for(i = 0; i < queue.length; i++) {
-                this.createTile(queue[i], L.Util.bind(this._tileReady, this, queue[i]));
+                this.createTile(queue[i]);
             }
         }
 
     },
 
-    createTile: function (coords, done) {
+    createTile: function (coords) {
         var tile = new Image(),
             tilePos = this._getTilePos(coords),
             key = this._tileCoordsToKey(coords),
             tileSrc = this.getTileUrl(coords);
 
-        L.DomEvent.on(tile, 'load', L.Util.bind(this._tileOnLoad, this, tilePos, done, tile));
-        L.DomEvent.on(tile, 'error', L.Util.bind(this._tileOnError, this, tilePos, done, tile));
+        L.DomEvent.on(tile, 'load', L.Util.bind(this._tileOnLoad, this, tilePos, this._tileReady.bind(this), tile, key, coords));
+        L.DomEvent.on(tile, 'error', L.Util.bind(this._tileOnError, this, tilePos, this._tileReady.bind(this), tile));
 
         tile.src = tileSrc;
 
         // save tile in cache
-        this._tiles[key] = {
-            el: tile,
-            coords: coords,
-            current: true
-        };
+        // this._tiles[key] = {
+        //     el: tile,
+        //     coords: coords,
+        //     current: true
+        // };
 
         return tile;
     },
 
-    _tileReady: function (coords, err, tile) {
-        // if(!this._map) { return; }
-
-        // if(err) {
-        //     // @event tileerror: TileErrorEvent
-        //     // Fired when there is an error loading a tile.
-        //     this.fire('tileerror', {
-        //         error: err,
-        //         tile: tile,
-        //         coords: coords
-        //     });
+    _tileReady: function (tilePos, err, tile) {
+        // if(!this.bufferCanvas){
+        //     this.bufferCanvas = document.createElement('canvas');
+        //     this.bufferCanvas.width = this._container.width;
+        //     this.bufferCanvas.height = this._container.height;                        
         // }
-
-        // var key = this._tileCoordsToKey(coords);
-
-        // tile = this._tiles[key];
-        // if(!tile) { return; }
-
-        // tile.loaded = +new Date();
-        // if(this._map._fadeAnimated) {
-        //     DomUtil.setOpacity(tile.el, 0);
-        //     Util.cancelAnimFrame(this._fadeFrame);
-        //     this._fadeFrame = Util.requestAnimFrame(this._updateOpacity, this);
-        // } else {
-        //     tile.active = true;
-        //     this._pruneTiles();
-        // }
-
-        // if(!err) {
-        //     DomUtil.addClass(tile.el, 'leaflet-tile-loaded');
-
-        //     // @event tileload: TileEvent
-        //     // Fired when a tile loads.
-        //     this.fire('tileload', {
-        //         tile: tile.el,
-        //         coords: coords
-        //     });
-        // }
-
-        // if(this._noTilesToLoad()) {
-        //     this._loading = false;
-        //     // @event load: Event
-        //     // Fired when the grid layer loaded all visible tiles.
-        //     this.fire('load');
-
-        //     if(Browser.ielt9 || !this._map._fadeAnimated) {
-        //         Util.requestAnimFrame(this._pruneTiles, this);
-        //     } else {
-        //         // Wait a bit more than 0.2 secs (the duration of the tile fade-in)
-        //         // to trigger a pruning.
-        //         setTimeout(Util.bind(this._pruneTiles, this), 250);
-        //     }
+        // var  bufferCtx = this.bufferCanvas.getContext('2d');
+        // var size = this.getTileSize();
+        // bufferCtx.clearRect(tilePos.x, tilePos.y, size.x, size.y);
+        // bufferCtx.drawImage(tile, tilePos.x, tilePos.y, size.x, size.y);
+        // if(this.tileCount <=0 ){
+        //     this._ctx.clearRect(0,0,this._container.width,this._container.height);
+        //     this._ctx.drawImage(this.bufferCanvas,0,0);
         // }
     },
 
-    _tileOnLoad: function (tilePos, done, tile) {
+    _tileOnLoad: function (tilePos, done, tile, key, coords) {
+         this.tileCount --;
         // For https://github.com/Leaflet/Leaflet/issues/3332
         if(L.Browser.ielt9) {
-            setTimeout(L.Util.bind(done, this, null, tile), 0);
+            setTimeout(L.Util.bind(done, this, tilePos, null, tile), 0);
         } else {
-            done(null, tile);
+            done(tilePos, null, tile);
         }
         var size = this.getTileSize();
+        // save tile in cache
+        // this._tiles[key] = {
+        //     el: tile,
+        //     coords: coords,
+        //     current: true
+        // };
         this._ctx.clearRect(tilePos.x, tilePos.y, size.x, size.y);
         this._ctx.drawImage(tile, tilePos.x, tilePos.y, size.x, size.y);
     },
 
     _tileOnError: function (tilePos, done, tile, e) {
+        this.tileCount --;
         var errorUrl = this.options.errorTileUrl;
         if(errorUrl && tile.src !== errorUrl) {
             tile.src = errorUrl;
         }
-        done(e, tile);
+        done(tilePos, e, tile);
     },
 
     getTileSize: function () {
