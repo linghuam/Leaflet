@@ -5,9 +5,9 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>FullCanvasTileLayer</title>
-    <link rel="stylesheet" href="dist/leaflet.css">
-    <script type="text/javascript" src="dist/leaflet-src.js"></script>
-    <script type="text/javascript" src="linghuamtest.js"></script>
+    <link rel="stylesheet" href="../dist/leaflet.css">
+    <script type="text/javascript" src="../dist/leaflet-src.js"></script>
+    <script type="text/javascript" src="./linghuamtest.js"></script>
 </head>
 
 <body>
@@ -99,16 +99,16 @@
         _addTile: function (coords, ctx) {
             var tilePos = this._getTilePos(coords);
 
-            var tile = this.createTile(coords,tilePos,null);
+            var tile = this.createTile(coords, tilePos, null);
 
             // ctx.drawImage(tile, tilePos.x, tilePos.y, 256, 256);
             // ctx.fillText(tile.innerHTML,tilePos.y,tilePos.x);
         },
 
-        createTile: function (coords,tilePos, done) {
+        createTile: function (coords, tilePos, done) {
             var tile = new Image();
 
-            tile.onload = function(){
+            tile.onload = function () {
                 this._ctx.drawImage(tile, tilePos.x, tilePos.y, 256, 256);
             }.bind(this);
             tile.src = this.getTileUrl(coords);
