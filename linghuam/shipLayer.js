@@ -47,8 +47,8 @@ L.ShipLayer = L.Path.extend({
     },
 
     _updateBounds: function () {
-        var r = this._width,
-            r2 = this._height || r,
+        var r = this._width / 2,
+            r2 = this._height / 2 || r,
             w = this._clickTolerance(),
             p = [r + w, r2 + w];
         this._pxBounds = new L.Bounds(this._point.subtract(p), this._point.add(p));
@@ -70,7 +70,13 @@ L.ShipLayer = L.Path.extend({
 
     // Needed by the `Canvas` renderer for interactivity
     _containsPoint: function (p) {
-        return p.distanceTo(this._point) <= this._width + this._clickTolerance();
+        var maxDis = Math.sqrt(Math.pow(this._width, 2) + Math.pow(this._height,2)) / 2;
+        var minDis = Math.min(this._width,this._height) / 2;
+        return p.distanceTo(this._point) <= minDis + this._clickTolerance();
+    },
+
+    _clickTolerance: function () {
+        return 0;
     },
 
     _toLatLng: function (a, b, c) {
