@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="../dist/leaflet.css">
+    <script type="text/javascript" src="http://apps.bdimg.com/libs/jquery/1.7.2/jquery.js"></script>
+    <script type="text/javascript" src="../dist/leaflet-src.js"></script>
+    <script type="text/javascript" src="./sector.js"></script>
+</head>
+
+<body>
+    <div id="map" style="position:absolute;left:0;top:0;bottom:0;right:0;overflow: hidden;width:100%;height:100%;"></div>
+
+    <script type="text/javascript">
+    // googlelayer
+    var GoogleLayer = L.TileLayer.extend({
+
+        initialize: function (url, options) {
+            L.TileLayer.prototype.initialize.call(this, url, options);
+        },
+
+        getTileUrl: function (tilePoint) {
+            return L.Util.template(this._url, {
+                x: tilePoint.x,
+                y: tilePoint.y,
+                z: tilePoint.z
+            })
+        }
+    });
+    // init map 
+    var mymap = L.map('map', {
+        center: [39.90923, 116.397428],
+        zoom: 4,
+        worldCopyJump: true
+    });
+    // add layer
+    new GoogleLayer('http://mt2.google.cn/vt/lyrs=m&hl=zh-CN&gl=cn&s=Gal&z={z}&x={x}&y={y}').addTo(mymap);
+    </script>
+
+    <script type="text/javascript">
+    var shipCanvas = new L.ShipCanvas();
+    $.getJSON('./data/1.json', function (data) {
+        for(var i = 0, len = data.msg.shipList.length; i < len; i++) {
+            var obj = data.msg.shipList[i];
+            var latLng = L.latLng(obj.la / 600000, obj.lo / 600000);
+            var dir = obj.di / 10;
+            var shipLayer = new L.ShipLayer(latLng, {
+                renderer: shipCanvas,
+                rotate: dir
+            }).addTo(mymap);
+            shipLayer.bindPopup('<p>' + obj.nu +'</p>');
+        }
+    });
+    </script>
+</body>
+
+</html>
