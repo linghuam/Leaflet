@@ -40,19 +40,15 @@
     </script>
 
     <script type="text/javascript">
-    var shipCanvas = new L.ShipCanvas();
-    $.getJSON('./data/1.json', function (data) {
-        for(var i = 0, len = data.msg.shipList.length; i < len; i++) {
-            var obj = data.msg.shipList[i];
-            var latLng = L.latLng(obj.la / 600000, obj.lo / 600000);
-            var dir = obj.di / 10;
-            var shipLayer = new L.ShipLayer(latLng, {
-                renderer: shipCanvas,
-                rotate: dir
-            }).addTo(mymap);
-            shipLayer.bindPopup('<p>' + obj.nu +'</p>');
-        }
+    var sectorCanvas = new L.SectorCanvas();
+    var sectorLayer = new L.SectorLayer(L.latLng(39, 116), {
+        renderer: sectorCanvas,
+        startRadius: 50, // in pixels
+        endRadius: 100,
+        startAngle: 10, // the angle realtive to the east; between 0 and 360
+        endAngle: 100
     });
+    sectorLayer.addTo(mymap);
     </script>
 </body>
 

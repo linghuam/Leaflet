@@ -139,3 +139,60 @@ L.SectorLayer = L.Path.extend({
         return new L.LatLng(a, b, c);
     }
 });
+
+L.SectorCanvas = L.Canvas.extend({
+
+    _updateSector: function (layer) {
+        if(!this._drawing || layer._empty()) { return; }
+
+        var p = layer._point,
+            ctx = this._ctx,
+            startAngle = layer._startAngle,
+            endAngle = layer._endAngle,
+            startRadius = layer._startRadius,
+            endRadius = layer._endRadius,
+            srad = Math.PI / 180 * startAngle,
+            erad = Math.PI / 180 * endAngle,
+            spoint1 = L.point(startRadius * Math.cos(srad), startRadius * Math.sin(srad)),
+            spoint2 = L.point(startRadius * Math.cos(erad), startRadius * Math.sin(erad)),
+            epoint1 = L.point(endRadius * Math.cos(srad), endRadius * Math.sin(srad)),
+            epoint2 = L.point(endRadius * Math.cos(erad), endRadius * Math.sin(erad));
+
+        this._drawnLayers[layer._leaflet_id] = layer;
+
+        // 绘制部分-start
+        ctx.save();        
+        ctx.beginPath();
+        ctx.translate(p.x, p.y);
+        ctx.arc(0, 0, startRadius, erad, srad, true);
+        ctx.lineTo(epoint1.x, epoint1.y);
+        ctx.arc(0, 0, endRadius, srad, erad, false);
+        ctx.lineTo(spoint2.x, spoint2.y);
+        ctx.closePath();
+        this._fillStroke(ctx, layer);
+        ctx.restore();
+        // 绘制部分-end
+    },
+
+    _fillStroke: function (ctx, layer) {
+        var options = layer.options;
+
+        if(options.fill) {
+            ctx.globalAlpha = options.fillOpacity;
+            ctx.fillStyle = options.fillColor || options.color;
+            ctx.fill(options.fillRule || 'evenodd');
+        }
+
+        if(options.stroke && options.weight !== 0) {
+            if(ctx.setLineDash) {
+                ctx.setLineDash(layer.options && layer.options._dashArray || []);
+            }
+            ctx.globalAlpha = options.opacity;
+            ctx.lineWidth = options.weight;
+            ctx.strokeStyle = options.color;
+            ctx.lineCap = options.lineCap;
+            ctx.lineJoin = options.lineJoin;
+            ctx.stroke();
+        }
+    }    
+});
