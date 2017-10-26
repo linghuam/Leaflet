@@ -154,7 +154,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
     },
     _onMouseDown: function _onMouseDown(e) {
         var latlng = e.latlng,
-            pc = this._map.project(this._startLatLng),
+            pc = this._map.project(this._startLatLng || latlng), // linghuam edit
             ph = this._map.project(latlng),
             v = [ph.x - pc.x, ph.y - pc.y],
             newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360;
