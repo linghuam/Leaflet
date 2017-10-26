@@ -67,7 +67,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
             //绘制过程经历 D U M, D U M, D U 
             //暂不考虑触摸屏
             this._map
-                .on('mousedow', this._onMouseDown, this)
+                .on('mousedown', this._onMouseDown, this)
                 .on('mousemove', this._onMouseMove, this)
                 .on('mouseup', this._onMouseUp, this);
         }
@@ -82,7 +82,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
             this._container.style.cursor = '';
 
             this._map
-                .off('mousedow', this._onMouseDown, this)
+                .off('mousedown', this._onMouseDown, this)
                 .off('mousemove', this._onMouseMove, this)
                 .off('mouseup', this._onMouseUp, this);
 
