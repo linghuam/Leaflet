@@ -30,10 +30,34 @@ L.SectorLayer = L.Path.extend({
         return this._latlng;
     },
 
+    setAngle: function (startAngle, endAngle) {
+        if (endAngle === undefined){
+            this.options.endAngle = this._endAngle = startAngle;
+        } else {
+            this.options.startAngle = this._startAngle = startAngle;
+            this.options.endAngle = this._endAngle = endAngle;
+        }
+        return this.redraw();
+    },
+
+    setRadius: function (startRadius, endRadius) {
+        if (endRadius === undefined){
+            this.options.endRadius = this._endRadius = startRadius;
+        } else {
+            this.options.startRadius = this._startRadius = startRadius;
+            this.options.endRadius = this._endRadius = endRadius;
+        }
+        return this.redraw();
+    },
+
     setStyle: function (options) {
-        // var rotate = options && options.rotate || this._rotate;
+        var startAngle = options && options.startAngle || this._startAngle;
+        var endAngle = options && options.endAngle || this._endAngle;
+        var startRadius = options && options.startRadius || this._startRadius;
+        var endRadius = options && options.endRadius || this._endRadius;
         Path.prototype.setStyle.call(this, options);
-        // this.setRotate(rotate);
+        this.setAngle(startAngle, endAngle);
+        this.setRadius(startRadius, endRadius);
         return this;
     },
 
