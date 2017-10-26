@@ -47,8 +47,14 @@
         endRadius: 100,
         startAngle: 10, // the angle realtive to the east; between 0 and 360
         endAngle: 100
-    });
-    sectorLayer.addTo(mymap);
+    }).addTo(mymap);
+    var sectorLayer2 = new L.SectorLayer(L.latLng(30, 114), {
+        renderer: sectorCanvas,
+        startRadius: 0, // in pixels
+        endRadius: 200,
+        startAngle: 30, // the angle realtive to the east; between 0 and 360
+        endAngle: 250
+    }).addTo(mymap);
     </script>
 </body>
 

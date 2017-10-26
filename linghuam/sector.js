@@ -143,7 +143,8 @@ L.SectorLayer = L.Path.extend({
 L.SectorCanvas = L.Canvas.extend({
 
     _updateSector: function (layer) {
-        if(!this._drawing || layer._empty()) { return; }
+        
+        // if(!this._drawing || layer._empty()) { return; }
 
         var p = layer._point,
             ctx = this._ctx,
