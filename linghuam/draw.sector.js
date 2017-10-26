@@ -18,7 +18,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
     options: {
         shapeOptions: {
             stroke: true,
-            color: '#ffff00',
+            color: '#0000ff',
             weight: 5,
             opacity: 0.5,
             fillOpacity: 0.2,
