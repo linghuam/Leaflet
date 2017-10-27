@@ -1,5 +1,5 @@
 // 扇形 或环形
-L.SectorLayer = L.Path.extend({
+L.Sector = L.Path.extend({
 
     options: {
         fill: true,
@@ -221,3 +221,11 @@ L.SectorCanvas = L.Canvas.extend({
         }
     }    
 });
+
+L.sector = function (latlng, options) {
+    return new L.Sector(latlng, options);
+}
+
+L.sectorCanvas = function (options) {
+    return new L.SectorCanvas(options);
+}
