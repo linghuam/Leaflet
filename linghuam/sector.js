@@ -101,7 +101,7 @@ L.Sector = L.Path.extend({
         }
         // pxbounds
         var w = this._clickTolerance();
-        this._pxBounds = new L.Bounds(rect.topLeft.subtract(w), rect.bottomRight.add(w));
+        this._pxBounds = new L.Bounds(rect.topLeft.subtract(L.point([w,w])), rect.bottomRight.add(L.point([w,w])));
     },
 
     _update: function () {
@@ -169,7 +169,7 @@ L.SectorCanvas = L.Canvas.extend({
     _updateSector: function (layer) {
         
         // if(!this._drawing || layer._empty()) { return; }
-
+        // this._clear();
         var p = layer._point,
             ctx = this._ctx,
             startAngle = layer._startAngle,
