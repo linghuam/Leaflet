@@ -3,21 +3,24 @@ L.Sector = L.Path.extend({
 
     options: {
         fill: true,
+        fillColor:'#f00',
 
         // self options 
         startRadius: 0, // in pixels
         endRadius:10,
-        startAngle: 0, // the angle realtive to the east; between 0 and 360
+        startAngle: 0, // the angle realtive to the east; between 0 and 360 (必须顺时针)
         endAngle: 360, // the angle realtive to the east; between 0 and 360
     },
 
     initialize: function (latlng, options) {
         L.Util.setOptions(this, options);
         this._latlng = this._toLatLng(latlng);
-        this._startAngle = this.options.startAngle;
-        this._endAngle = this.options.endAngle;
-        this._startRadius = this.options.startRadius;
-        this._endRadius = this.options.endRadius;
+        var startAngle = this._wrapAngle(this.options.startAngle);
+        var  endAngle = this._wrapAngle(this.options.endAngle);
+        this._startAngle = startAngle;
+        this._endAngle = endAngle;
+        this._startRadius = Math.abs(this.options.startRadius);
+        this._endRadius = Math.abs(this.options.endRadius);
     },
 
     setLatLng: function (latlng) {
@@ -31,21 +34,33 @@ L.Sector = L.Path.extend({
     },
 
     setAngle: function (startAngle, endAngle) {
-        if (endAngle === undefined){
-            this.options.endAngle = this._endAngle = startAngle;
-        } else {
-            this.options.startAngle = this._startAngle = startAngle;
-            this.options.endAngle = this._endAngle = endAngle;
-        }
+        var nstartAngle = endAngle === undefined ?  this._startAngle : startAngle;
+        var nendAngle = endAngle === undefined ?  startAngle : endAngle;
+        this.options.startAngle = this._startAngle = this._wrapAngle(nstartAngle);
+        this.options.endAngle = this._endAngle = this._wrapAngle(nendAngle);        
         return this.redraw();
+    },
+
+    _wrapAngle: function (angle) {
+        return angle;
+        angle = Number(angle);
+        if (Number.isNaN(angle)){            
+            throw new Error('angle is not a number!');
+            return 0 ;
+        }
+        if (Math.abs(angle / 360) > 1) {
+            return (angle % 360 < 0) ? (360 + angle % 360) : (angle % 360);
+        } else {
+            return angle < 0 ? (360 + angle) : angle;
+        }
     },
 
     setRadius: function (startRadius, endRadius) {
         if (endRadius === undefined){
-            this.options.endRadius = this._endRadius = startRadius;
+            this.options.endRadius = this._endRadius = Math.abs(startRadius);
         } else {
-            this.options.startRadius = this._startRadius = startRadius;
-            this.options.endRadius = this._endRadius = endRadius;
+            this.options.startRadius = this._startRadius = Math.abs(startRadius);
+            this.options.endRadius = this._endRadius = Math.abs(endRadius);
         }
         return this.redraw();
     },
@@ -101,6 +116,9 @@ L.Sector = L.Path.extend({
         }
         // pxbounds
         var w = this._clickTolerance();
+        if ( Number.isNaN(rect.topLeft.x) || Number.isNaN(rect.topLeft.y) || Number.isNaN(rect.bottomRight.x) || Number.isNaN(rect.bottomRight.y)){
+            console.log('_pxBounds is not a number!');
+        }
         this._pxBounds = new L.Bounds(rect.topLeft.subtract(L.point([w,w])), rect.bottomRight.add(L.point([w,w])));
     },
 
@@ -115,13 +133,13 @@ L.Sector = L.Path.extend({
     },
 
     _empty: function () {
-        return (this._endAngle - this._startAngle <= 0) || (this._endRadius - this._startRadius <= 0) && !this._renderer._bounds.intersects(this._pxBounds);
+        return (this._endAngle - this._startAngle === 0) || (this._endRadius - this._startRadius === 0) && !this._renderer._bounds.intersects(this._pxBounds);
     },
 
     // Needed by the `Canvas` renderer for interactivity
     _containsPoint: function (p) {
-        var maxDis = this._endRadius + this._clickTolerance(); 
-        var minDis = this._startRadius + this._clickTolerance();
+        var maxDis = Math.max(this._endRadius, this._startRadius) + this._clickTolerance(); 
+        var minDis = Math.min(this._endRadius, this._startRadius) + this._clickTolerance();
         var vectora = L.point(1, 0);
         var vectorb = p.subtract(this._point);
         var aMutiplyb = vectora.x * vectorb.x + vectora.y * vectorb.y;
@@ -131,7 +149,13 @@ L.Sector = L.Path.extend({
         if (p.y < this._point.y) {
             angle = 360 - angle;
         }
-        return p.distanceTo(this._point) <= maxDis && p.distanceTo(this._point) >= minDis && angle >= this._startAngle && angle <= this._endAngle;
+        var isAngleCorrect = false;
+        if (this._startAngle > this._endAngle) {
+            isAngleCorrect = angle >= this._startAngle || angle <= this._endAngle;
+        } else {
+            isAngleCorrect =  angle >= this._startAngle && angle <= this._endAngle;
+        }
+        return p.distanceTo(this._point) <= maxDis && p.distanceTo(this._point) >= minDis && isAngleCorrect;
     },
 
     _clickTolerance: function () {
@@ -169,7 +193,8 @@ L.SectorCanvas = L.Canvas.extend({
     _updateSector: function (layer) {
         
         // if(!this._drawing || layer._empty()) { return; }
-        // this._clear();
+        // this._clear(); 清除方法有问题，只能清除屏幕内的，屏幕外的不能清除
+        this._ctx.clearRect(0, 0, this._container.width, this._container.height);
         var p = layer._point,
             ctx = this._ctx,
             startAngle = layer._startAngle,

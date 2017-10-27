@@ -183,42 +183,25 @@ L.Draw.Sector = L.Draw.Feature.extend({
         pc = this._map.project(this._startLatLng);
         ph = this._map.project(latlng);
         v = [ph.x - pc.x, ph.y - pc.y];
-        var radius = Math.max(pc.distanceTo(ph), 10);
+        // var radius = Math.max(pc.distanceTo(ph), 10);
+        var radius = pc.distanceTo(ph);
 
         if(!this._shape) {
 
-            // pc = this._map.project(this._startLatLng);
-            // ph = this._map.project(latlng);
-            // v = [ph.x - pc.x, ph.y - pc.y];
-
             startBearing = (Math.atan2(v[0], -v[1]) * 180 / Math.PI) % 360;
 
-            // this._shape = L.sector(L.Util.extend({
-            //     center: this._startLatLng,
-            //     innerRadius: this._innerRadius,
-            //     outerRadius: radius,
-            //     startBearing,
-            //     endBearing: startBearing + 1                
-            // }, this.options.shapeOptions));
             this._shape = L.sector(this._startLatLng, {
                 renderer: this._sectorCanvas,
                 startRadius: this._innerRadius, // in pixels
                 endRadius: radius,
-                startAngle: this.getAngle(startBearing), // the angle realtive to the east; between 0 and 360
+                startAngle: this.getAngle(this._startBearing), // the angle realtive to the east; between 0 and 360
                 endAngle: this.getAngle(startBearing + 1)   
             });
             this._map.addLayer(this._shape);
         } else {
-            // pc = this._map.project(this._startLatLng);
-            // ph = this._map.project(latlng);
-            // v = [ph.x - pc.x, ph.y - pc.y];
 
             endBearing = (Math.atan2(v[0], -v[1]) * 180 / Math.PI) % 360;
 
-            // this._shape.setOuterRadius(radius);
-            // this._shape.setEndBearing(endBearing);
-            // this._shape.setLatLngs(this._shape.getLatLngs());
-            
             this._shape.setRadius(radius);
             this._shape.setAngle(this.getAngle(endBearing));    
         }
@@ -226,7 +209,11 @@ L.Draw.Sector = L.Draw.Feature.extend({
 
     getAngle: function (angle) {
         angle = Number(angle);
-        return angle > 0 ? Number(angle - 90) : Number(360 - 90 + angle) ;
+        if (angle >= 90 && angle <= 180) {
+            return Math.abs(angle) - 90;
+        } else {
+            return 270 + angle;
+        }
     },
 
     _drawLine: function (latlng) {
@@ -239,14 +226,6 @@ L.Draw.Sector = L.Draw.Feature.extend({
     },
 
     _fireCreatedEvent: function () {
-        // var sector = L.sector(L.Util.extend({
-        //     center: this._startLatLng,
-        //     innerRadius: this._shape.getInnerRadius(),
-        //     outerRadius: this._shape.getOuterRadius(),
-        //     startBearing: this._shape.getStartBearing(),
-        //     endBearing: this._shape.getEndBearing()
-        // }, this.options.shapeOptions));
-
         var sector = L.sector(this._startLatLng, {
             renderer: this._sectorCanvas,
             startRadius: this._shape._startRadius, // in pixels

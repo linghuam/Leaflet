@@ -43,10 +43,10 @@
     var sectorCanvas = new L.SectorCanvas();
     var sectorLayer = L.sector(L.latLng(39, 116), {
         renderer: L.sectorCanvas(),
-        startRadius: 50, // in pixels
+        startRadius: 150, // in pixels
         endRadius: 100,
         startAngle: 10, // the angle realtive to the east; between 0 and 360
-        endAngle: 100,
+        endAngle: 190,
         stroke:true,
         color:'#f00',
         fillColor:'#00f'
@@ -55,8 +55,8 @@
         renderer: L.sectorCanvas(),
         startRadius: 0, // in pixels
         endRadius: 200,
-        startAngle: 30, // the angle realtive to the east; between 0 and 360
-        endAngle: 250
+        startAngle: 90, // the angle realtive to the east; between 0 and 360
+        endAngle: 30
     }).addTo(mymap);
     </script>
 </body>
