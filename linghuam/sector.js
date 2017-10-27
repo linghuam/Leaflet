@@ -6,7 +6,7 @@ L.Sector = L.Path.extend({
         fillColor:'#f00',
 
         // self options 
-        startRadius: 0, // in pixels
+        startRadius: 0, // in meter
         endRadius:10,
         startAngle: 0, // the angle realtive to the east; between 0 and 360 (必须顺时针)
         endAngle: 360, // the angle realtive to the east; between 0 and 360
@@ -19,8 +19,8 @@ L.Sector = L.Path.extend({
         var  endAngle = this._wrapAngle(this.options.endAngle);
         this._startAngle = startAngle;
         this._endAngle = endAngle;
-        this._startRadius = Math.abs(this.options.startRadius);
-        this._endRadius = Math.abs(this.options.endRadius);
+        // this._startRadius = this.getPixelRadius(Math.abs(this.options.startRadius));
+        // this._endRadius = this.getPixelRadius(Math.abs(this.options.endRadius));
     },
 
     setLatLng: function (latlng) {
@@ -57,10 +57,10 @@ L.Sector = L.Path.extend({
 
     setRadius: function (startRadius, endRadius) {
         if (endRadius === undefined){
-            this.options.endRadius = this._endRadius = Math.abs(startRadius);
+            this.options.endRadius = this._endRadius = this.getPixelRadius(Math.abs(startRadius));
         } else {
-            this.options.startRadius = this._startRadius = Math.abs(startRadius);
-            this.options.endRadius = this._endRadius = Math.abs(endRadius);
+            this.options.startRadius = this._startRadius = this.getPixelRadius(Math.abs(startRadius));
+            this.options.endRadius = this._endRadius = this.getPixelRadius(Math.abs(endRadius));
         }
         return this.redraw();
     },
@@ -78,7 +78,41 @@ L.Sector = L.Path.extend({
 
     _project: function () {
         this._point = this._map.latLngToLayerPoint(this._latlng);
+        this._startRadius = this.getPixelRadius(Math.abs(this.options.startRadius));
+        this._endRadius = this.getPixelRadius(Math.abs(this.options.endRadius));
         this._updateBounds();
+    },
+
+    getPixelRadius: function (mRadius) {
+        var lng = this._latlng.lng,
+            lat = this._latlng.lat,
+            map = this._map,
+            crs = map.options.crs;
+
+        if (crs.distance === L.CRS.Earth.distance) {
+            var d = Math.PI / 180,
+                latR = (mRadius / L.CRS.Earth.R) / d,
+                top = map.project([lat + latR, lng]),
+                bottom = map.project([lat - latR, lng]),
+                p = top.add(bottom).divideBy(2),
+                lat2 = map.unproject(p).lat,
+                lngR = Math.acos((Math.cos(latR * d) - Math.sin(lat * d) * Math.sin(lat2 * d)) /
+                        (Math.cos(lat * d) * Math.cos(lat2 * d))) / d;
+
+            if (isNaN(lngR) || lngR === 0) {
+                lngR = latR / Math.cos(Math.PI / 180 * lat); // Fallback for edge case, #2425
+            }
+
+            this._point = p.subtract(map.getPixelOrigin());
+            return isNaN(lngR) ? 0 : Math.max(Math.round(p.x - map.project([lat2, lng - lngR]).x), 1);
+            // this._radiusY = Math.max(Math.round(p.y - top.y), 1);
+
+        } else {
+            var latlng2 = crs.unproject(crs.project(this._latlng).subtract([mRadius, 0]));
+
+            this._point = map.latLngToLayerPoint(this._latlng);
+            return this._point.x - map.latLngToLayerPoint(latlng2).x;
+        }    
     },
 
     _updateBounds: function () {

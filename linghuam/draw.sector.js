@@ -116,8 +116,8 @@ L.Draw.Sector = L.Draw.Feature.extend({
             this._startLatLng = latlng;
         } else if (!this._innerRadius) {
             this._startBearing = newB;
-            // this._innerRadius = this._startLatLng.distanceTo(latlng);
-            this._innerRadius = pc.distanceTo(ph);
+            this._innerRadius = this._startLatLng.distanceTo(latlng);
+            // this._innerRadius = pc.distanceTo(ph);
         } else {
             this._endBearing = newB;
         }
@@ -183,8 +183,8 @@ L.Draw.Sector = L.Draw.Feature.extend({
         pc = this._map.project(this._startLatLng);
         ph = this._map.project(latlng);
         v = [ph.x - pc.x, ph.y - pc.y];
-        // var radius = Math.max(pc.distanceTo(ph), 10);
-        var radius = pc.distanceTo(ph);
+        var radius = Math.max(this._startLatLng.distanceTo(latlng), 10);
+        // var radius = pc.distanceTo(ph);
 
         if(!this._shape) {
 
