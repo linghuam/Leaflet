@@ -2,7 +2,7 @@
 L.Sector = L.Path.extend({
 
     options: {
-        fill: true,
+        fill: false,
         fillColor:'#f00',
 
         // self options 
