@@ -1,13 +1,13 @@
-L.drawLocal.draw.toolbar.buttons.sector = 'Draw a Sector'
+L.drawLocal.draw.toolbar.buttons.sector = '绘制扇形或环形'
 
 L.drawLocal.draw.handlers.sector = {
     tooltip: {
-        start: 'Click to set Sector center.',
-        line: 'Click to set Inner Radius and Start Bearing.',
-        end: 'Click to set End Bearing, Outer Radius and create Sector'
+        start: '点击绘制中心点',
+        line: '点击绘制起始半径和角度',
+        end: '点击绘制终止角度'
     },
-    radius: 'Radius (meters): ',
-    bearing: 'Bearing (degrees): '
+    radius: '半径 (海里): ',
+    bearing: '角度 (度): '
 }
 
 L.Draw.Sector = L.Draw.Feature.extend({
@@ -126,7 +126,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
     _onMouseMove: function (e) {
         var latlng = e.latlng;
 
-        var radius, pc, ph, v, bearing;
+        var radius, pc, ph, v, bearing, nradius;
 
         this._tooltip.updatePosition(latlng);
 
@@ -143,11 +143,12 @@ L.Draw.Sector = L.Draw.Feature.extend({
 
                 this._tooltip.updateContent({
                     text: L.drawLocal.draw.handlers.sector.tooltip.end,
-                    subtext: `Bearing(degrees): ${bearing}`
+                    subtext: `角度(度): ${bearing}`
                 });
 
             } else {
                 radius = this._startLatLng.distanceTo(latlng);
+                nradius = this.convertMileToNmile(radius);
                 pc = this._map.project(this._startLatLng);
                 ph = this._map.project(latlng);
                 v = [ph.x - pc.x, ph.y - pc.y];
@@ -157,7 +158,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
                 this._drawLine(latlng);
                 this._tooltip.updateContent({
                     text: L.drawLocal.draw.handlers.sector.tooltip.line,
-                    subtext: `Radius(meters): ${radius}, Bearing(degrees): ${bearing}`
+                    subtext: `半径(海里): ${nradius}, 角度(度): ${bearing}`
                 });
             }
         }
@@ -165,6 +166,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
 
     _onMouseUp: function (e) {
         if (this._endBearing) {
+            this._tooltip.dispose()
             this._fireCreatedEvent(e)
 
             this.disable()
@@ -175,16 +177,12 @@ L.Draw.Sector = L.Draw.Feature.extend({
         }
     },
 
-    _drawShape: function (latlng) {
-        // var radius = Math.max(this._startLatLng.distanceTo(latlng), 10);
-       
-
+    _drawShape: function (latlng) {       
         var pc, ph, v, startBearing, endBearing;
         pc = this._map.project(this._startLatLng);
         ph = this._map.project(latlng);
         v = [ph.x - pc.x, ph.y - pc.y];
-        var radius = Math.max(this._startLatLng.distanceTo(latlng), 10);
-        // var radius = pc.distanceTo(ph);
+        var radius = Math.max(this._startLatLng.distanceTo(latlng), 5);
 
         if(!this._shape) {
 
@@ -192,7 +190,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
 
             this._shape = L.sector(this._startLatLng, {
                 renderer: this._sectorCanvas,
-                startRadius: this._innerRadius, // in pixels
+                startRadius: this._innerRadius, // in meter
                 endRadius: radius,
                 startAngle: this.getAngle(this._startBearing), // the angle realtive to the east; between 0 and 360
                 endAngle: this.getAngle(startBearing + 1)   
@@ -214,6 +212,13 @@ L.Draw.Sector = L.Draw.Feature.extend({
         } else {
             return 270 + angle;
         }
+    },
+
+    /*米转化为海里*/
+    convertMileToNmile: function (mileVal) {
+        var oval = parseFloat(mileVal);
+        var newval = Number(oval / (1.852 * 1000));
+        return newval.toFixed(3);
     },
 
     _drawLine: function (latlng) {
