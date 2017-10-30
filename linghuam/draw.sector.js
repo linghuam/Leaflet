@@ -25,7 +25,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
             clickable: true
         },
         lineOptions: {
-            color: '#ffff00',
+            color: '#ff0000',
             weight: 5,
             dashArray: '5, 10'
         },

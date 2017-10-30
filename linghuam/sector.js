@@ -268,7 +268,18 @@ L.SectorCanvas = L.Canvas.extend({
         ctx.arc(0, 0, startRadius, erad, srad, true);
         ctx.lineTo(epoint1.x, epoint1.y);
         ctx.arc(0, 0, endRadius, srad, erad, false);
-        ctx.lineTo(spoint2.x, spoint2.y);
+        ctx.lineTo(spoint2.x, spoint2.y);          
+        // if (startAngle < endAngle){
+        //     ctx.arc(0, 0, startRadius, erad, srad, true);
+        //     ctx.lineTo(epoint1.x, epoint1.y);
+        //     ctx.arc(0, 0, endRadius, srad, erad, false);
+        //     ctx.lineTo(spoint2.x, spoint2.y);            
+        // } else {
+        //     ctx.arc(0, 0, startRadius, erad, srad, false);
+        //     ctx.lineTo(epoint1.x, epoint1.y);
+        //     ctx.arc(0, 0, endRadius, srad, erad, true);
+        //     ctx.lineTo(spoint2.x, spoint2.y);             
+        // }
         ctx.closePath();
         this._fillStroke(ctx, layer);
         ctx.restore();
