@@ -1,4 +1,4 @@
-L.drawLocal.draw.toolbar.buttons.sector = '绘制扇形或环形'
+L.drawLocal.draw.toolbar.buttons.sector = '绘制扇形或环形';
 
 L.drawLocal.draw.handlers.sector = {
     tooltip: {
@@ -8,7 +8,7 @@ L.drawLocal.draw.handlers.sector = {
     },
     radius: '半径 (海里): ',
     bearing: '角度 (度): '
-}
+};
 
 L.Draw.Sector = L.Draw.Feature.extend({
     statics: {
@@ -32,7 +32,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
         showRadius: true,
         metric: true, // Whether to use the metric measurement system or imperial
         feet: false, // When not metric, to use feet instead of yards for display.
-        nautic: false // When not metric, not feet use nautic mile for display		
+        nautic: false // When not metric, not feet use nautic mile for display      
     },
 
     initialize: function (map, options) {
@@ -98,6 +98,21 @@ L.Draw.Sector = L.Draw.Feature.extend({
             if(this._line) {
                 this._map.removeLayer(this._line)
                 delete this._line
+            }
+            if (this._tooltip){
+                this._tooltip.dispose()
+            }
+            if (this._startLatLng ) {
+                delete this._startLatLng 
+            }
+            if (this._innerRadius) {
+                delete this._innerRadius
+            }
+            if (this._startBearing) {
+                delete this._startBearing
+            }
+            if (this._endBearing) {
+                delete this._endBearing
             }
         }
         this._isDrawing = false;
@@ -165,8 +180,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
     },
 
     _onMouseUp: function (e) {
-        if (this._endBearing) {
-            this._tooltip.dispose()
+        if (this._endBearing) {           
             this._fireCreatedEvent(e)
 
             this.disable()
@@ -232,7 +246,7 @@ L.Draw.Sector = L.Draw.Feature.extend({
 
     _fireCreatedEvent: function () {
         var sector = L.sector(this._startLatLng, {
-            renderer: this._sectorCanvas,
+            renderer: L.sectorCanvas(),
             startRadius: this._shape._startRadius, // in pixels
             endRadius: this._shape._endRadius,
             startAngle: this._shape._startAngle, // the angle realtive to the east; between 0 and 360

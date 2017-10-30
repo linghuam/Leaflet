@@ -2,8 +2,9 @@
 L.Sector = L.Path.extend({
 
     options: {
-        fill: false,
-        fillColor:'#f00',
+        fill: true,
+        fillColor:'#3388ff',
+        // renderer:L.sectorCanvas(),
 
         // self options 
         startRadius: 0, // in meter
@@ -115,6 +116,12 @@ L.Sector = L.Path.extend({
         }    
     },
 
+    getBounds: function () {
+        if (this._pxBounds) {
+            return new L.latLngBounds(this._map.layerPointToLatLng(this._pxBounds.min), this._map.layerPointToLatLng(this._pxBounds.max));
+        }
+    },
+
     _updateBounds: function () {
         var srad = Math.PI / 180 * this._startAngle;
         var erad = Math.PI / 180 * this._endAngle;
@@ -224,11 +231,21 @@ L.Sector = L.Path.extend({
 
 L.SectorCanvas = L.Canvas.extend({
 
+    /*
+     * 在移除时移除整个canvas，避免遗留多余canvas元素
+     * 
+     */
+    _removePath: function(layer) {
+        L.DomUtil.remove(this._container);
+        L.Canvas.prototype._removePath.call(this, layer);
+        layer._removed = true;
+    },    
+
     _updateSector: function (layer) {
         
         // if(!this._drawing || layer._empty()) { return; }
         // this._clear(); 清除方法有问题，只能清除屏幕内的，屏幕外的不能清除
-        this._ctx.clearRect(0, 0, this._container.width, this._container.height);
+        this._ctx.clearRect(0, 0, this._container.width*2, this._container.height*2);
         var p = layer._point,
             ctx = this._ctx,
             startAngle = layer._startAngle,
