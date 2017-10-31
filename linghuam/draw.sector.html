@@ -49,7 +49,6 @@
 
     <script type="text/javascript">
     new L.Draw.Sector(mymap).enable();
-
     mymap.on('draw:created', function (e) {
         // var newSector = L.sector({
         //     center: e.layer.getCenter(),
@@ -65,8 +64,13 @@
         // });
 
         // newSector.editing.enable();
-
-        mymap.addLayer(e.layer);
+        var layer = e.layer;
+        mymap.addLayer(layer);
+        var point = mymap.latLngToLayerPoint(L.latLng(30,114));
+        var iscontain = layer._containsPoint(point);
+        if (iscontain) {
+            // alert('contain point ')
+        }
     });
     </script>
 </body>

@@ -186,7 +186,7 @@ L.Sector = L.Path.extend({
         var aMutiplyb = vectora.x * vectorb.x + vectora.y * vectorb.y;
         var aMbM = Math.sqrt(vectora.x * vectora.x + vectora.y * vectora.y) * Math.sqrt(vectorb.x * vectorb.x + vectorb.y * vectorb.y);
         var cosab = aMutiplyb / aMbM;
-        var angle = Math.acos(cosab);
+        var angle = Math.acos(cosab) * 180 / Math.PI;
         if (p.y < this._point.y) {
             angle = 360 - angle;
         }
