@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title></title>
     <!-- <link rel="stylesheet" href="../dist/leaflet.css"> -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css">
@@ -37,7 +37,7 @@
             })
         }
     });
-    // init map 
+    // init map
     var mymap = L.map('map', {
         center: [39.90923, 116.397428],
         zoom: 6,
@@ -69,7 +69,7 @@
         var point = mymap.latLngToLayerPoint(L.latLng(30,114));
         var iscontain = layer._containsPoint(point);
         if (iscontain) {
-            // alert('contain point ')
+            console.log('contain point ')
         }
     });
     </script>
