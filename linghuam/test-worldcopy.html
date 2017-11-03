@@ -38,12 +38,16 @@
     </script>
 
     <script type="text/javascript">
-      L.polygon([
-        [-40, 178],
-        [-45, 178],
-        [-45, -168],
-        [-40, -168],
-      ]).addTo(mymap);
+    // 点
+    var p1 = L.latLng(39,116);
+    var p2 = L.latLng(39,116 + 360);
+    var p3 = L.latLng(39,116 - 360);
+    L.marker(p1).addTo(mymap);
+    L.marker(p2).addTo(mymap);
+    L.marker(p3).addTo(mymap);
+    // 线
+    var line1 = [[39, 116],[30, -116],[35, 114]];
+    L.polyline(line1).addTo(mymap);
     </script>
 </body>
 
