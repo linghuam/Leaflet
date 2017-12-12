@@ -35,19 +35,45 @@
     });
     // add layer
     new GoogleLayer('http://mt2.google.cn/vt/lyrs=m&hl=zh-CN&gl=cn&s=Gal&z={z}&x={x}&y={y}').addTo(mymap);
+    // add control
+    var attrcontrol = L.control.attribution({ position: 'topright', prefix: false }).addTo(mymap);
+    // mymap events
+    mymap.on("mousemove", function (e) {
+        var latlng = e.latlng;
+        var layerpoint = e.layerPoint;
+        var containerpoint = e.containerPoint;
+        var html = [];
+        html.push('<span>lng：' + latlng.lng + '&nbsp&nbsplat：' + latlng.lat + '</span><br>');
+        html.push('<span>layerPoint:[' + layerpoint.x + ',' + layerpoint.y + ']</span><br>');
+        html.push('<span>containerPoint:[' + containerpoint.x + ',' + containerpoint.y + ']</span><br>');
+        html.push('<span>zoomLevel:' + mymap.getZoom() + '</span><br>');
+        html = html.join('');
+        if(attrcontrol) {
+            var container = attrcontrol.getContainer();
+            container.innerHTML = html;
+        }
+    }, this);
     </script>
 
     <script type="text/javascript">
     // 点
-    var p1 = L.latLng(39,116);
-    var p2 = L.latLng(39,116 + 360);
-    var p3 = L.latLng(39,116 - 360);
-    L.marker(p1).addTo(mymap);
-    L.marker(p2).addTo(mymap);
-    L.marker(p3).addTo(mymap);
-    // 线
-    var line1 = [[39, 116],[30, -116],[35, 114]];
-    L.polyline(line1).addTo(mymap);
+    // var p1 = L.latLng(39,116);
+    // var p2 = L.latLng(39,116 + 360);
+    // var p3 = L.latLng(39,116 - 360);
+    // L.marker(p1).addTo(mymap);
+    // L.marker(p2).addTo(mymap);
+    // L.marker(p3).addTo(mymap);
+    // // 线
+    // var line1 = [[39, 116],[30, -116],[35, 114]];
+    // L.polyline(line1).addTo(mymap);
+
+    var southWest = L.latLng(0, 170);
+    var northEast = L.latLng(10, 190);
+    southWest = southWest.wrap();
+    northEast = northEast.wrap();
+    var bounds = L.latLngBounds(southWest, northEast);
+    L.rectangle(bounds).addTo(mymap);
+    mymap.fitBounds(bounds);
     </script>
 </body>
 
