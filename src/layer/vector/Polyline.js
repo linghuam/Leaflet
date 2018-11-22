@@ -53,10 +53,12 @@ export var Polyline = Path.extend({
 		// @option smoothFactor: Number = 1.0
 		// How much to simplify the polyline on each zoom level. More means
 		// better performance and smoother look, and less means more accurate representation.
+		// 压缩阈值，对应 LineUtil.simplify
 		smoothFactor: 1.0,
 
 		// @option noClip: Boolean = false
 		// Disable polyline clipping.
+		// 是否被窗口裁剪，对应 LineUtil.clipSegment
 		noClip: false
 	},
 

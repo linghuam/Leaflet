@@ -11,6 +11,8 @@ import * as LineUtil from './LineUtil';
  * performance. Note that polygon points needs different algorithm for clipping
  * than polyline, so there's a separate method for it.
  */
+// 用窗口来裁剪多边形，提高性能
+// 逐边裁剪法 https://blog.csdn.net/llwszjj/article/details/24841863
 export function clipPolygon(points, bounds, round) {
 	var clippedPoints,
 	    edges = [1, 4, 2, 8],
