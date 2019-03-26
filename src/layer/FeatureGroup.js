@@ -23,6 +23,13 @@ import {LatLngBounds} from '../geo/LatLngBounds';
  * ```
  */
 
+ /**
+  * 为什么要搞个 FeatureGroup，它与 LayerGroup 区别？
+  * 个人认为：
+  * LayerGroup 适用面更广，它可以处理任何类型的图层
+  * FeatureGroup 它最好用来处理同一类型的图层，可以方便的批量处理矢量数据，因为它与 LayerGroup 最大的不同是多了个 setStyle 方法（可以将一个图层样式风格设置成一样）
+  */
+
 export var FeatureGroup = LayerGroup.extend({
 
 	addLayer: function (layer) {
@@ -69,7 +76,7 @@ export var FeatureGroup = LayerGroup.extend({
 	},
 
 	// @method bringToBack(): this
-	// Brings the layer group to the top of all other layers
+	// Brings the layer group to the back of all other layers
 	bringToBack: function () {
 		return this.invoke('bringToBack');
 	},

@@ -55,7 +55,7 @@ Let's have a look at a simple map locked at zoom zero:
 Notice that the "whole earth" is just one image, 256 pixels wide and 256 pixels high:
 
 <div class='tiles' style='text-align: center'>
-<img src="http://a.basemaps.cartocdn.com/light_all/0/0/0.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/0/0/0.png" class="bordered-img" alt=""/>
 </div>
 
 Just to be clear: the earth is not a square. Rather, the earth is shaped like [a weird potato](https://commons.wikimedia.org/wiki/File:GRACE_globe_animation.gif) that can be approximated to [something similar to a sphere](https://en.wikipedia.org/wiki/Geoid).
@@ -93,48 +93,48 @@ simpler, and allows Leaflet (and other map libraries) to be fast.
 For now, let's just ***assume*** that the world is a square:
 
 <div class='tiles' style='text-align: center'>
-<img src="http://a.basemaps.cartocdn.com/light_all/0/0/0.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/0/0/0.png" class="bordered-img" alt=""/>
 </div>
 
 When we represent the world at zoom level **zero**, it's 256 pixels wide and high. When we go into zoom level **one**, it doubles its width and height, and can be represented by four 256-pixel-by-256-pixel images:
 
 <div class='tiles' style='text-align: center'>
 <div>
-<img src="http://a.basemaps.cartocdn.com/light_all/1/0/0.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/1/1/0.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/1/0/0.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/1/1/0.png" class="bordered-img" alt=""/>
 </div>
 <div>
-<img src="http://a.basemaps.cartocdn.com/light_all/1/0/1.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/1/1/1.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/1/0/1.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/1/1/1.png" class="bordered-img" alt=""/>
 </div>
 </div>
 
-At each zoom level, each tile is divided in four, and its size doubles (in other words, the width and height of the world is <code>256·2<sup>zoomlevel</sup></code> pixels):
+At each zoom level, each tile is divided in four, and its size (length of the edge, given by the `tileSize` option) doubles, quadrupling the area. (in other words, the width and height of the world is <code>256·2<sup>zoomlevel</sup></code> pixels):
 
 <table><tr><td>
 <div class='tiles small' style='text-align: center'>
-<img src="http://a.basemaps.cartocdn.com/light_all/0/0/0.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/0/0/0.png" class="bordered-img" alt=""/>
 </div>
 </td><td>
 <div class='tiles small' style='text-align: center'>
 <div>
-<img src="http://a.basemaps.cartocdn.com/light_all/1/0/0.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/1/1/0.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/1/0/0.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/1/1/0.png" class="bordered-img" alt=""/>
 </div>
 <div>
-<img src="http://a.basemaps.cartocdn.com/light_all/1/0/1.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/1/1/1.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/1/0/1.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/1/1/1.png" class="bordered-img" alt=""/>
 </div>
 </div>
 </td><td>
 <div class='tiles small' style='text-align: center'>
 <div>
-<img src="http://a.basemaps.cartocdn.com/light_all/2/0/0.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/1/0.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/2/0.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/3/0.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/2/0/0.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/1/0.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/2/0.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/3/0.png" class="bordered-img" alt=""/>
 </div>
 <div>
-<img src="http://a.basemaps.cartocdn.com/light_all/2/0/1.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/1/1.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/2/1.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/3/1.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/2/0/1.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/1/1.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/2/1.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/3/1.png" class="bordered-img" alt=""/>
 </div>
 <div>
-<img src="http://a.basemaps.cartocdn.com/light_all/2/0/2.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/1/2.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/2/2.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/3/2.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/2/0/2.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/1/2.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/2/2.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/3/2.png" class="bordered-img" alt=""/>
 </div>
 <div>
-<img src="http://a.basemaps.cartocdn.com/light_all/2/0/3.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/1/3.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/2/3.png" class="bordered-img" alt=""/><img src="http://a.basemaps.cartocdn.com/light_all/2/3/3.png" class="bordered-img" alt=""/>
+<img src="https://a.basemaps.cartocdn.com/light_all/2/0/3.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/1/3.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/2/3.png" class="bordered-img" alt=""/><img src="https://a.basemaps.cartocdn.com/light_all/2/3/3.png" class="bordered-img" alt=""/>
 </div>
 </div>
 </td></tr>
@@ -177,8 +177,8 @@ At high zoom levels, the scale changes very little, and is not noticeable.
 
 ## Controlling the zoom
 
-A leaflet map has a several ways to control the zoom level shown, but the most obvious
-one is [`setZoom()`](../../reference-1.0.3.html#map-setzoom). For example, `map.setZoom(0);`
+A leaflet map has several ways to control the zoom level shown, but the most obvious
+one is [`setZoom()`](/reference.html#map-setzoom). For example, `map.setZoom(0);`
 will set the zoom level of `map` to `0`.
 
 This example again uses timeouts to alternate between zoom levels `0` and `1` automatically:
@@ -199,12 +199,12 @@ shown in the previous section!
 
 Other ways of setting the zoom are:
 
-* [`setView(center, zoom)`](../../reference-1.0.3.html#map-setview), which also sets the map center
-* [`flyTo(center, zoom)`](../../reference-1.0.3.html#map-flyto), like `setView` but with a smooth animation
-* [`zoomIn()` / `zoomIn(delta)`](../../reference-1.0.3.html#map-zoomin), zooms in `delta` zoom levels, `1` by default
-* [`zoomOut()` / `zoomOut(delta)`](../../reference-1.0.3.html#map-zoomout), zooms out `delta` zoom levels, `1` by default
-* [`setZoomAround(fixedPoint, zoom)`](../../reference-1.0.3.html#map-setzoomaround), sets the zoom level while keeping a point fixed (what scrollwheel zooming does)
-* [`fitBounds(bounds)`](../../reference-1.0.3.html#map-fitbounds), automatically calculates the zoom to fit a rectangular area on the map
+* [`setView(center, zoom)`](/reference.html#map-setview), which also sets the map center
+* [`flyTo(center, zoom)`](/reference.html#map-flyto), like `setView` but with a smooth animation
+* [`zoomIn()` / `zoomIn(delta)`](/reference.html#map-zoomin), zooms in `delta` zoom levels, `1` by default
+* [`zoomOut()` / `zoomOut(delta)`](/reference.html#map-zoomout), zooms out `delta` zoom levels, `1` by default
+* [`setZoomAround(fixedPoint, zoom)`](/reference.html#map-setzoomaround), sets the zoom level while keeping a point fixed (what scrollwheel zooming does)
+* [`fitBounds(bounds)`](/reference.html#map-fitbounds), automatically calculates the zoom to fit a rectangular area on the map
 
 
 ## Fractional zoom
@@ -214,7 +214,7 @@ Before this, the zoom level of the map could be only an integer number (`0`, `1`
 but now you can use fractional numbers like `1.5` or `1.25`.
 
 Fractional zoom is disabled by default. To enable it, use the
-[map's `zoomSnap` option](http://leafletjs.com/reference-1.0.3.html#map-zoomsnap).
+[map's `zoomSnap` option](/reference.html#map-zoomsnap).
 The `zoomSnap` option has a default value of `1` (which means that the zoom level
 of the map can be `0`, `1`, `2`, and so on).
 
@@ -245,12 +245,12 @@ a pinch-zoom gesture on a touchscreen.
 `zoomSnap` can be set to zero. This means that Leaflet will <strong>not</strong>
 snap the zoom level.
 
-There is another important map option related to `zoomSnap`: [the `zoomDelta` option](http://leafletjs.com/reference-1.0.3.html#map-zoomdelta).
+There is another important map option related to `zoomSnap`: [the `zoomDelta` option](/reference.html#map-zoomdelta).
 This controls how many zoom levels to zoom in/out when using the zoom buttons
-(from the default [`L.Control.Zoom`](http://leafletjs.com/reference-1.0.3.html#control-zoom))
+(from the default [`L.Control.Zoom`](/reference.html#control-zoom))
 or the `+`/`-` keys in your keyboard.
 
-For the mousewheel zoom, the [`wheelPxPerZoomLevel`](http://leafletjs.com/reference-1.0.3.html#map-wheelpxperzoomlevel)
+For the mousewheel zoom, the [`wheelPxPerZoomLevel`](/reference.html#map-wheelpxperzoomlevel)
 option controls how fast the mousewheel zooms in our out.
 
 Here is an example with `zoomSnap` set to zero:

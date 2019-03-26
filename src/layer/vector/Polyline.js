@@ -53,10 +53,12 @@ export var Polyline = Path.extend({
 		// @option smoothFactor: Number = 1.0
 		// How much to simplify the polyline on each zoom level. More means
 		// better performance and smoother look, and less means more accurate representation.
+		// 压缩阈值，对应 LineUtil.simplify
 		smoothFactor: 1.0,
 
 		// @option noClip: Boolean = false
 		// Disable polyline clipping.
+		// 是否被窗口裁剪，对应 LineUtil.clipSegment
 		noClip: false
 	},
 
@@ -84,6 +86,8 @@ export var Polyline = Path.extend({
 		return !this._latlngs.length;
 	},
 
+	// @method closestLayerPoint(p: Point): Point
+	// Returns the point closest to `p` on the Polyline.
 	closestLayerPoint: function (p) {
 		var minDistance = Infinity,
 		    minPoint = null,
@@ -176,13 +180,13 @@ export var Polyline = Path.extend({
 	},
 
 	_defaultShape: function () {
-		return LineUtil._flat(this._latlngs) ? this._latlngs : this._latlngs[0];
+		return LineUtil.isFlat(this._latlngs) ? this._latlngs : this._latlngs[0];
 	},
 
 	// recursively convert latlngs input into actual LatLng instances; calculate bounds along the way
 	_convertLatLngs: function (latlngs) {
 		var result = [],
-		    flat = LineUtil._flat(latlngs);
+		    flat = LineUtil.isFlat(latlngs);
 
 		for (var i = 0, len = latlngs.length; i < len; i++) {
 			if (flat) {
@@ -322,3 +326,5 @@ export function polyline(latlngs, options) {
 	return new Polyline(latlngs, options);
 }
 
+// Retrocompat. Allow plugins to support Leaflet versions before and after 1.1.
+Polyline._flat = LineUtil._flat;

@@ -5,17 +5,17 @@ title: Using GeoJSON with Leaflet
 
 <h3>Using GeoJSON with Leaflet</h3>
 
-<p>GeoJSON is becoming a very popular data format among many GIS technologies and services — it's simple, lightweight, straightforward, and Leaflet is quite good at handling it. In this example, you'll learn how to create and interact with map vectors created from <a href="http://geojson.org/">GeoJSON</a> objects.</p>
+<p>GeoJSON is becoming a very popular data format among many GIS technologies and services — it's simple, lightweight, straightforward, and Leaflet is quite good at handling it. In this example, you'll learn how to create and interact with map vectors created from <a href="https://tools.ietf.org/html/rfc7946">GeoJSON</a> objects.</p>
 
 {% include frame.html url="example.html" %}
 
 <h3>About GeoJSON</h3>
 
-<p>According to <a href="http://geojson.org">http://geojson.org</a>:</p>
+<p>According to <a href="https://tools.ietf.org/html/rfc7946">GeoJSON Specification (RFC 7946)</a>:</p>
 
-<blockquote>GeoJSON is a format for encoding a variety of geographic data structures. A GeoJSON object may represent a geometry, a feature, or a collection of features. GeoJSON supports the following geometry types: Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, and GeometryCollection. Features in GeoJSON contain a geometry object and additional properties, and a feature collection represents a list of features.</blockquote>
+<blockquote>GeoJSON is a format for encoding a variety of geographic data structures […]. A GeoJSON object may represent a region of space (a Geometry), a spatially bounded entity (a Feature), or a list of Features (a FeatureCollection). GeoJSON supports the following geometry types: Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, and GeometryCollection. Features in GeoJSON contain a Geometry object and additional properties, and a FeatureCollection contains a list of Features.</blockquote>
 
-<p>Leaflet supports all of the GeoJSON types above, but <a href="http://geojson.org/geojson-spec.html#feature-objects">Features</a> and <a href="http://geojson.org/geojson-spec.html#feature-collection-objects">FeatureCollections</a> work best as they allow you to describe features with a set of properties. We can even use these properties to style our Leaflet vectors. Here's an example of a simple GeoJSON feature:</p>
+<p>Leaflet supports all of the GeoJSON types above, but <a href="https://tools.ietf.org/html/rfc7946#section-3.2">Features</a> and <a href="https://tools.ietf.org/html/rfc7946#section-3.3">FeatureCollections</a> work best as they allow you to describe features with a set of properties. We can even use these properties to style our Leaflet vectors. Here's an example of a simple GeoJSON feature:</p>
 
 <pre><code>var geojsonFeature = {
 	"type": "Feature",
@@ -33,7 +33,7 @@ title: Using GeoJSON with Leaflet
 
 <h3>The GeoJSON layer</h3>
 
-<p>GeoJSON objects are added to the map through a <a href="http://leafletjs.com/reference.html#geojson">GeoJSON layer</a>. To create it and add it to a map, we can use the following code:</p>
+<p>GeoJSON objects are added to the map through a <a href="/reference.html#geojson">GeoJSON layer</a>. To create it and add it to a map, we can use the following code:</p>
 
 <pre><code>L.geoJSON(geojsonFeature).addTo(map);</code></pre>
 
@@ -119,7 +119,7 @@ L.geoJSON(states, {
 
 <h4>pointToLayer</h4>
 
-<p>Points are handled differently than polylines and polygons. By default simple markers are drawn for GeoJSON Points. We can alter this by passing a <code>pointToLayer</code> function in a <a href="http://leafletjs.com/reference.html#geojson-options">GeoJSON options</a> object when creating the GeoJSON layer. This function is passed a <a href="http://leafletjs.com/reference.html#latlng">LatLng</a> and should return an instance of ILayer, in this case likely a <a href="http://leafletjs.com/reference.html#marker">Marker</a> or <a href="http://leafletjs.com/reference.html#circlemarker">CircleMarker</a>.</p>
+<p>Points are handled differently than polylines and polygons. By default simple markers are drawn for GeoJSON Points. We can alter this by passing a <code>pointToLayer</code> function in a <a href="/reference.html#geojson">GeoJSON options</a> object when creating the GeoJSON layer. This function is passed a <a href="/reference.html#latlng">LatLng</a> and should return an instance of ILayer, in this case likely a <a href="/reference.html#marker">Marker</a> or <a href="/reference.html#circlemarker">CircleMarker</a>.</p>
 
 <p>Here we're using the <code>pointToLayer</code> option to create a CircleMarker:</p>
 
