@@ -9,6 +9,8 @@
     <script type="text/javascript" src="../dist/leaflet-src.js"></script>
     <script type="text/javascript" src="./Proj4Leaflet-1.0.2/lib/proj4-compressed.js"></script>
     <script type="text/javascript" src="./Proj4Leaflet-1.0.2/src/proj4leaflet.js"></script>
+    <link rel="stylesheet" href="./L.Control.Location.css">
+    <script type="text/javascript" src="./L.Control.Location.js"></script>
 </head>
 
 <body>
@@ -20,7 +22,9 @@
             crs: L.CRS.Baidu,
             center: [39.915526,116.403852],
             zoom: 4,
-            worldCopyJump: false
+            worldCopyJump: false,
+            attributionControl: false,
+            zoomControl: false
         });
         L.tileLayer.baidu().addTo(map);
         L.marker([39.915526,116.403852]).addTo(map);
@@ -30,6 +34,8 @@
         L.marker([34.261012,108.942372], {title: 'wgs84坐标，定位点：西安转盘中心钟楼'}).addTo(map);
         // bd09ll 无偏移
         L.marker([34.26567965627331, 108.9534486770353], {title: 'bd09ll坐标，定位点：西安转盘中心钟楼'}).addTo(map);
+        L.control.location().addTo(map);
+        L.control.zoom({position:'bottomright'}).addTo(map);
     </script>
 </body>
 
