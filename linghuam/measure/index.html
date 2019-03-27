@@ -15,18 +15,25 @@
             width: 100%;
         }
     </style>
-    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
+    <script src="../jquery.min.js"></script>
+    <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" /> -->
+    <link rel="stylesheet" href="../../dist/leaflet.css">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> -->
+    <!-- <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script> -->
+    <script src="../../dist/leaflet.js"></script>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
-
-    <script src="https://cdn.bootcss.com/proj4js/2.4.3/proj4.js"></script>
-    <script src="https://cdn.bootcss.com/proj4leaflet/1.0.1/proj4leaflet.min.js"></script>
+    <!-- <script src="https://cdn.bootcss.com/proj4js/2.4.3/proj4.js"></script>
+     -->
+     <script src="../Proj4Leaflet-1.0.2/lib/proj4-compressed.js"></script>
+    <!-- <script src="https://cdn.bootcss.com/proj4leaflet/1.0.1/proj4leaflet.min.js"></script> -->
+    <script src="../Proj4Leaflet-1.0.2/src/proj4leaflet.js"></script>
 
     <script src="../L.baiduLayer.js"></script>
     <link rel="stylesheet" href="./Leaflet.PolylineMeasure.css">
     <script src="./Leaflet.PolylineMeasure.js"></script>
+    <link rel="stylesheet" href="./Leaflet.PolygonMeasure.css">
+    <script src="./Leaflet.PolygonMeasure.js"></script>
 </head>
 
 <body>
@@ -52,9 +59,17 @@
                 zoom: 12
             });
             L.tileLayer.baidu().addTo(map);
-            // L.control.locate({position:'bottomright'}).addTo(map);
-            L.control.polylineMeasure({position:'bottomright'}).addTo(map);
-            L.control.zoom({position:'bottomright'}).addTo(map);
+            L.control.zoom({position:'bottomright'}).addTo(map);   
+
+            L.control.polylineMeasure({
+                position:'bottomright',
+                showBearings: false
+            }).addTo(map);
+
+            L.control.polygonMeasure({
+                position:'bottomright',
+                showBearings: false
+            }).addTo(map);
         })
     </script>
 
