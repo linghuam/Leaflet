@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+    <title>measure</title>
+    <style>
+        html,
+        body,
+        #map {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+
+    <script src="https://cdn.bootcss.com/proj4js/2.4.3/proj4.js"></script>
+    <script src="https://cdn.bootcss.com/proj4leaflet/1.0.1/proj4leaflet.min.js"></script>
+
+    <script src="../L.baiduLayer.js"></script>
+    <link rel="stylesheet" href="./Leaflet.PolylineMeasure.css">
+    <script src="./Leaflet.PolylineMeasure.js"></script>
+</head>
+
+<body>
+
+    <div id="map" class="map">
+    </div>
+
+    <style>
+
+    </style>
+
+    <script type="text/javascript">
+        //初始化地图
+        $(document).ready(function () {
+
+            var map = L.map('map', {
+                crs: L.CRS.Baidu,
+                minZoom: 3,
+                maxZoom: 18,
+                attributionControl: false,
+                zoomControl: false,
+                center: [31.834912, 117.220102],
+                zoom: 12
+            });
+            L.tileLayer.baidu().addTo(map);
+            // L.control.locate({position:'bottomright'}).addTo(map);
+            L.control.polylineMeasure({position:'bottomright'}).addTo(map);
+            L.control.zoom({position:'bottomright'}).addTo(map);
+        })
+    </script>
+
+</body>
+
+</html>
