@@ -385,6 +385,12 @@
             // initialize state
             this._arrPolylines = [];
             this._measureControl = this._createControl (label, title, classes, this._container, this._toggleMeasure, this);
+            // 绘制前清除其他绘制
+            L.DomEvent.on(this._measureControl, 'click', function(e) {
+                if(this._map && this._map.PGControl && this._map.PGControl._measuring) {
+                    this._map.PGControl._toggleMeasure();
+                }
+            }, this);
             this._defaultControlBgColor = this._measureControl.style.backgroundColor;
             this._measureControl.setAttribute('id', _measureControlId);
             if (this.options.showClearControl) {
@@ -412,6 +418,7 @@
                 this._unitControl = this._createControl (label, title, classes, this._container, this._changeUnit, this);
                 this._unitControl.setAttribute ('id', 'unitControlId');
             }
+            map.PMControl = this;
             return this._container;
         },
 

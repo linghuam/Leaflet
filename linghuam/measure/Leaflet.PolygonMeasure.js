@@ -398,6 +398,12 @@
             // initialize state
             this._arrPolygons = [];
             this._measureControl = this._createControl (label, title, classes, this._container, this._toggleMeasure, this);
+            // 绘制前清除其他绘制
+            L.DomEvent.on(this._measureControl, 'click', function(e) {
+                if(this._map && this._map.PMControl && this._map.PMControl._measuring) {
+                    this._map.PMControl._toggleMeasure();
+                }
+            }, this);
             this._defaultControlBgColor = this._measureControl.style.backgroundColor;
             this._measureControl.setAttribute('id', _measureControlId);
             if (this.options.showClearControl) {
@@ -425,6 +431,8 @@
                 this._unitControl = this._createControl (label, title, classes, this._container, this._changeUnit, this);
                 this._unitControl.setAttribute ('id', 'unitControlId');
             }
+
+            map.PGControl = this;
             return this._container;
         },
 
@@ -528,15 +536,23 @@
                 document.getElementById("unitControlId").innerHTML = this.options.unitControlLabel.metres;
                 this._unitControl.title = this.options.unitControlTitle.text +" [" + this.options.unitControlTitle.metres  + "]";
             }
-            this._arrPolygons.map (function(line) {
-                var totalDistance = 0;
-                line.circleCoords.map (function(point, point_index) {
-                    if (point_index >= 1) {
-                        var distance = line.circleCoords [point_index - 1].distanceTo (line.circleCoords [point_index]);
-                        totalDistance += distance;
-                        this._updateTooltip (line.tooltips [point_index], line.tooltips [point_index - 1], totalDistance, distance, line.circleCoords [point_index - 1], line.circleCoords [point_index]);
-                    }
-                }.bind(this));
+            this._arrPolygons.map (function(polygon) {
+                if (this.options.showDistance) {
+                    let totalDistance = 0;
+                    polygon.circleCoords.map (function(point, point_index) {
+                        if (point_index >= 1) {
+                            let distance = polygon.circleCoords [point_index - 1].distanceTo (polygon.circleCoords [point_index]);
+                            totalDistance += distance;
+                            this._updateTooltip (polygon.tooltips [point_index], polygon.tooltips [point_index - 1], totalDistance, distance, polygon.circleCoords [point_index - 1], polygon.circleCoords [point_index]);
+                        }
+                    }.bind(this));
+                }
+                {
+                    let area = this._getArea(polygon.polygonPath.getLatLngs()[0]);
+                    let center = polygon.polygonPath.getCenter();
+                    polygon.areaTooltip._icon.innerHTML = area;
+                    polygon.areaTooltip.setLatLng(center);
+                }
             }.bind(this));
         },
 
@@ -562,18 +578,20 @@
                         text = this.options.bearingTextIn+':---°<br>'+this.options.bearingTextOut+':---°';
                     }  
                     text = text + '<div class="polygon-measure-tooltip-difference">+' + '0</div>';
-                    text = text + '<div class="polygon-measure-tooltip-total">' + '0</div>';                    
-                    this._arrPolygons[lineNr].tooltips [0]._icon.innerHTML = text;
-                    this._arrPolygons[lineNr].tooltips.map (function (item, index) {
-                        if (index >= 1) {
-                            var distance = this._arrPolygons[lineNr].circleCoords[index-1].distanceTo (this._arrPolygons[lineNr].circleCoords[index]);
-                            var lastCircleCoords = this._arrPolygons[lineNr].circleCoords[index - 1];
-                            var mouseCoords = this._arrPolygons[lineNr].circleCoords[index];
-                            totalDistance += distance;
-                            var prevTooltip = this._arrPolygons[lineNr].tooltips[index-1]
-                            this._updateTooltip (item, prevTooltip, totalDistance, distance, lastCircleCoords, mouseCoords);
-                        }
-                    }.bind (this));
+                    text = text + '<div class="polygon-measure-tooltip-total">' + '0</div>'; 
+                    if (this.options.showDistance) {
+                        this._arrPolygons[lineNr].tooltips [0]._icon.innerHTML = text;
+                        this._arrPolygons[lineNr].tooltips.map (function (item, index) {
+                            if (index >= 1) {
+                                var distance = this._arrPolygons[lineNr].circleCoords[index-1].distanceTo (this._arrPolygons[lineNr].circleCoords[index]);
+                                var lastCircleCoords = this._arrPolygons[lineNr].circleCoords[index - 1];
+                                var mouseCoords = this._arrPolygons[lineNr].circleCoords[index];
+                                totalDistance += distance;
+                                var prevTooltip = this._arrPolygons[lineNr].tooltips[index-1]
+                                this._updateTooltip (item, prevTooltip, totalDistance, distance, lastCircleCoords, mouseCoords);
+                            }
+                        }.bind (this));
+                    }                   
                     this._map.on ('mousemove', this._mouseMove, this);
                     return                
                 }                 
@@ -587,7 +605,8 @@
         },
 
         _getArea: function (latlngs) {
-            return 'todo area';
+            const area = L.GeometryUtil.geodesicArea(latlngs);
+            return L.GeometryUtil.readableArea(area, true);
         },
 
         /**
@@ -690,7 +709,7 @@
             fromLng=fromLng * Math.PI / 180;
             toLat=toLat * Math.PI / 180;
             toLng=toLng * Math.PI / 180;
-            d = 2.0 * Math.asin(Math.sqrt(Math.pow (Math.sin((fromLat - toLat) / 2.0), 2) + Math.cos(fromLat) *  Math.cos(toLat) *  Math.pow(Math.sin((fromLng - toLng) / 2.0), 2)));
+            var d = 2.0 * Math.asin(Math.sqrt(Math.pow (Math.sin((fromLat - toLat) / 2.0), 2) + Math.cos(fromLat) *  Math.cos(toLat) *  Math.pow(Math.sin((fromLng - toLng) / 2.0), 2)));
             if (d === 0) {
                 arrLatLngs = [[fromLat, fromLng]];
             } else {
@@ -780,11 +799,14 @@
             }
             var firstCircleCoords = this._currentLine.circleCoords.first();
             var lastCircleCoords = this._currentLine.circleCoords.last();  
+            if (lastCircleCoords.equals(mouseCoords)) {
+                return;
+            }
             if (this._currentLine.circleCoords.length >= 3) {
                 let lastToCurrentArc = this._polylineArc (lastCircleCoords, mouseCoords);
                 let currentTofirstArc = this._polylineArc (mouseCoords, firstCircleCoords);
                 this._rubberlinePath.setLatLngs(lastToCurrentArc.concat(currentTofirstArc));
-            } else if (this._currentLine.circleCoords.length >= 2){
+            } else if (this._currentLine.circleCoords.length >= 2) {
                 let firstToLastArc = this._polylineArc (firstCircleCoords, lastCircleCoords);
                 let lastToCurrentArc = this._polylineArc (lastCircleCoords, mouseCoords);
                 let currentToFirstArc = this._polylineArc (mouseCoords, firstCircleCoords);
@@ -799,7 +821,8 @@
                     area = this._getArea(this._rubberlinePath.getLatLngs());
                 } else {
                     let arc = this._polylineArc (lastCircleCoords, mouseCoords);
-                    area = this._getArea(this._currentLine.polygonPath.getLatLngs()[0].concat(arc));
+                    let arcLatLngs = arc.map(item => L.latLng(item[0], item[1]));
+                    area = this._getArea(this._currentLine.polygonPath.getLatLngs()[0].concat(arcLatLngs));
                 }
                 var currentTooltip = this._currentLine.tooltips.last();
                 var prevTooltip = this._currentLine.tooltips.slice(-2,-1)[0];
@@ -974,7 +997,7 @@
                     // remove temporary rubberline
                     polygonState._layerPaint.removeLayer (polygonState._rubberlinePath);
                     if (this.circleCoords.length > 1) {
-                        this.tooltips.last()._icon.classList.add('polygon-measure-tooltip-end'); // add Class e.g. another background-color to the Previous Tooltip (which is the last fixed tooltip, cause the moving tooltip is being deleted later)
+                        if (polygonState.options.showDistance) this.tooltips.last()._icon.classList.add('polygon-measure-tooltip-end'); // add Class e.g. another background-color to the Previous Tooltip (which is the last fixed tooltip, cause the moving tooltip is being deleted later)
                         var lastCircleMarker = this.circleMarkers.last()
                         lastCircleMarker.setStyle (polygonState.options.endCircle);
                         // use Leaflet's own tooltip method to shwo a popuo tooltip if user hovers the last circle of a polygon
@@ -1050,6 +1073,10 @@
          * @private
          */
         _finishPolygonPath: function (e) {
+            // 如果点数不够三个，无法停止
+            if (this._currentLine.circleCoords.length < 3) {
+                return;
+            }
             this._currentLine.finalize();
             if (e) {
                 this._finishCircleScreencoords = e.containerPoint;
@@ -1091,6 +1118,7 @@
         },
       
         _clickedArrow: function(e) {
+            var arrowMarker;
             if (e.originalEvent.ctrlKey) {           
                 var lineNr = e.target.cntLine;
                 var arrowNr = e.target.cntArrow;
@@ -1104,7 +1132,7 @@
                     item.cntCircle = index;
                 });
                 this._arrPolygons[lineNr].circleCoords.splice (arrowNr+1, 0, e.latlng);
-                lineCoords = this._arrPolygons[lineNr].polygonPath.getLatLngs(); // get Coords of each Point of the current Polyline 
+                lineCoords = this._arrPolygons[lineNr].polygonPath.getLatLngs()[0]; // get Coords of each Point of the current Polyline 
                 var arc1 = this._polylineArc (this._arrPolygons[lineNr].circleCoords[arrowNr], e.latlng);
                 arc1.pop(); 
                 var arc2 = this._polylineArc (e.latlng, this._arrPolygons[lineNr].circleCoords[arrowNr+2]);
@@ -1156,6 +1184,7 @@
         },
       
         _dragCircleMousemove: function (e2) {
+            var arrowMarker;
             var mouseNewLat = e2.latlng.lat;
             var mouseNewLng = e2.latlng.lng;
             var latDifference = mouseNewLat - this._mouseStartingLat;
@@ -1166,42 +1195,57 @@
             this._e1.target.setLatLng (currentCircleCoords);
             this._e1.target.unbindTooltip();    // unbind popup-tooltip cause otherwise it would be annoying during dragging, or popup instantly again if it's just closed
             this._arrPolygons[lineNr].circleCoords[circleNr] = currentCircleCoords;
-            lineCoords = this._arrPolygons[lineNr].polygonPath.getLatLngs(); // get Coords of each Point of the current Polyline
+            lineCoords = this._arrPolygons[lineNr].polygonPath.getLatLngs()[0]; // get Coords of each Point of the current Polyline
             if (circleNr >= 1) {   // redraw previous arc just if circle is not starting circle of polygon
                 newLineSegment1 = this._polylineArc(this._arrPolygons[lineNr].circleCoords[circleNr-1], currentCircleCoords);
                 // the next line's syntax has to be used since Internet Explorer doesn't know new spread operator (...) for inserting the individual elements of an array as 3rd argument of the splice method; Otherwise we could write: lineCoords.splice (circleNr*(arcpoints-1), arcpoints, ...newLineSegment1);
                 Array.prototype.splice.apply (lineCoords, [(circleNr-1)*(arcpoints-1), arcpoints].concat (newLineSegment1));
-                arrowMarker = this._drawArrow (newLineSegment1);
-                arrowMarker.cntLine = lineNr;
-                arrowMarker.cntArrow = circleNr-1;
-                this._arrPolygons[lineNr].arrowMarkers [circleNr-1].removeFrom (this._layerPaint);
-                this._arrPolygons[lineNr].arrowMarkers [circleNr-1] = arrowMarker;
+                if (this.options.showArrow) {
+                    arrowMarker = this._drawArrow (newLineSegment1);
+                    arrowMarker.cntLine = lineNr;
+                    arrowMarker.cntArrow = circleNr-1;
+                    this._arrPolygons[lineNr].arrowMarkers [circleNr-1].removeFrom (this._layerPaint);
+                    this._arrPolygons[lineNr].arrowMarkers [circleNr-1] = arrowMarker;
+                }
             }
             if (circleNr < this._arrPolygons[lineNr].circleCoords.length-1) {   // redraw following arc just if circle is not end circle of polygon
                 newLineSegment2 = this._polylineArc (currentCircleCoords, this._arrPolygons[lineNr].circleCoords[circleNr+1]);
                 Array.prototype.splice.apply (lineCoords, [circleNr*(arcpoints-1), arcpoints].concat (newLineSegment2));
-                arrowMarker = this._drawArrow (newLineSegment2);
-                arrowMarker.cntLine = lineNr;
-                arrowMarker.cntArrow = circleNr;
-                this._arrPolygons[lineNr].arrowMarkers [circleNr].removeFrom (this._layerPaint);
-                this._arrPolygons[lineNr].arrowMarkers [circleNr] = arrowMarker;
+                if (this.options.showArrow) {
+                    arrowMarker = this._drawArrow (newLineSegment2);
+                    arrowMarker.cntLine = lineNr;
+                    arrowMarker.cntArrow = circleNr;
+                    this._arrPolygons[lineNr].arrowMarkers [circleNr].removeFrom (this._layerPaint);
+                    this._arrPolygons[lineNr].arrowMarkers [circleNr] = arrowMarker;
+                }
             }
             this._arrPolygons[lineNr].polygonPath.setLatLngs (lineCoords);
             if (circleNr >= 0) {     // just update tooltip position if moved circle is 2nd, 3rd, 4th etc. circle of a polygon
-                    this._arrPolygons[lineNr].tooltips[circleNr].setLatLng (currentCircleCoords);
-            }    
-            var totalDistance = 0;
-            // update tooltip texts of each tooltip
-            this._arrPolygons[lineNr].tooltips.map (function (item, index) {
-                if (index >= 1) {
-                    var distance = this._arrPolygons[lineNr].circleCoords[index-1].distanceTo (this._arrPolygons[lineNr].circleCoords[index]);
-                    var lastCircleCoords = this._arrPolygons[lineNr].circleCoords[index - 1];
-                    var mouseCoords = this._arrPolygons[lineNr].circleCoords[index];
-                    totalDistance += distance;
-                    var prevTooltip = this._arrPolygons[lineNr].tooltips[index-1]
-                    this._updateTooltip (item, prevTooltip, totalDistance, distance, lastCircleCoords, mouseCoords);
-                }
-            }.bind(this));
+                if(this.options.showDistance) this._arrPolygons[lineNr].tooltips[circleNr].setLatLng (currentCircleCoords);
+                this._arrPolygons[lineNr].areaTooltip.setLatLng(currentCircleCoords);
+            } 
+            
+            if (this.options.showDistance) {
+                var totalDistance = 0;
+                // update tooltip texts of each tooltip
+                this._arrPolygons[lineNr].tooltips.map (function (item, index) {
+                    if (index >= 1) {
+                        var distance = this._arrPolygons[lineNr].circleCoords[index-1].distanceTo (this._arrPolygons[lineNr].circleCoords[index]);
+                        var lastCircleCoords = this._arrPolygons[lineNr].circleCoords[index - 1];
+                        var mouseCoords = this._arrPolygons[lineNr].circleCoords[index];
+                        totalDistance += distance;
+                        var prevTooltip = this._arrPolygons[lineNr].tooltips[index-1]
+                        this._updateTooltip (item, prevTooltip, totalDistance, distance, lastCircleCoords, mouseCoords);
+                    }
+                }.bind(this));
+            }
+            {
+                let polygon = this._arrPolygons[lineNr];
+                let area = this._getArea(polygon.polygonPath.getLatLngs()[0]);
+                let center = polygon.polygonPath.getCenter();
+                polygon.areaTooltip._icon.innerHTML = area;
+                polygon.areaTooltip.setLatLng(center);
+            }
             this._map.on ('mouseup', this._dragCircleMouseup, this);
         },
       
@@ -1231,6 +1275,7 @@
         },
       
         _resumeFirstpointClick: function (e) {
+            var arrowMarker;
             this._resumeFirstpointFlag = false;
             this._map.off ('mousemove', this._resumeFirstpointMousemove, this);
             this._map.off ('click', this._resumeFirstpointClick, this); 
@@ -1256,8 +1301,8 @@
                 item.cntArrow = index;
             });
             arc.pop();  // remove last coordinate of arc, cause it's already part of the next arc.          
-            this._arrPolygons[lineNr].polygonPath.setLatLngs (arc.concat(this._arrPolygons[lineNr].polygonPath.getLatLngs()));
-            this._arrPolygons[lineNr].tooltips.unshift(tooltipNew);
+            this._arrPolygons[lineNr].polygonPath.setLatLngs (arc.concat(this._arrPolygons[lineNr].polygonPath.getLatLngs()[0]));
+            if(this.options.showDistance) this._arrPolygons[lineNr].tooltips.unshift(tooltipNew);
             this._map.on ('mousemove', this._mouseMove, this);
         },
       
@@ -1311,7 +1356,7 @@
                 this._arrPolygons[lineNr].circleMarkers.map (function (item, index) {
                     item.cntCircle = index;
                 });
-                lineCoords = this._arrPolygons[lineNr].polygonPath.getLatLngs();
+                lineCoords = this._arrPolygons[lineNr].polygonPath.getLatLngs()[0];
                 this._arrPolygons[lineNr].tooltips [circleNr].removeFrom (this._layerPaint);
                 this._arrPolygons[lineNr].tooltips.splice(circleNr,1);
                 // if first Circle is being removed
@@ -1343,7 +1388,7 @@
                     Array.prototype.splice.apply (lineCoords, [(circleNr-1)*(arcpoints-1), (2*arcpoints-1)].concat (newLineSegment));
                     this._arrPolygons[lineNr].arrowMarkers [circleNr-1].removeFrom (this._layerPaint);
                     this._arrPolygons[lineNr].arrowMarkers [circleNr].removeFrom (this._layerPaint);
-                    arrowMarker = this._drawArrow (newLineSegment);
+                    var arrowMarker = this._drawArrow (newLineSegment);
                     this._arrPolygons[lineNr].arrowMarkers.splice(circleNr-1,2,arrowMarker);
                 } 
                 this._arrPolygons[lineNr].polygonPath.setLatLngs (lineCoords);
