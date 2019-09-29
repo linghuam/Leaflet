@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>test</title>
+    <link rel="stylesheet" href="../dist/leaflet.css">
+    <script type="text/javascript" src="../dist/leaflet-src.js"></script>
+</head>
+
+<body>
+    <div id="map" style="position:absolute;left:0;top:0;bottom:0;right:0;overflow: hidden;width:100%;height:100%;"></div>
+    <script type="text/javascript">
+    var GoogleLayer = L.TileLayer.extend({
+
+        initialize: function (url, options) {
+            L.TileLayer.prototype.initialize.call(this, url, options);
+        },
+
+        getTileUrl: function (tilePoint) {
+            return L.Util.template(this._url, {
+                x: tilePoint.x,
+                y: tilePoint.y,
+                z: tilePoint.z
+            })
+        },
+
+        createTile: function(coords, done) {
+          var div = document.createElement('div');
+          var size = this.getTileSize();
+          div.style.width = size.x + 'px';
+          div.style.height = size.y + 'px';
+          div.style.visibility = 'visible';
+          div.innerHTML = `x:${coords.x},y:${coords.y},z:${coords.z}`;
+          return div;
+        }
+    });
+    // init map
+    var mymap = L.map('map', {
+        center: [45.6166,84.8496],
+        zoom: 8,
+         crs: L.CRS.EPSG3857
+    });
+    // add layer
+    // new GoogleLayer('http://mt2.google.cn/vt/lyrs=m&hl=zh-CN&gl=cn&s=Gal&z={z}&x={x}&y={y}').addTo(mymap);
+    new GoogleLayer().addTo(mymap);
+    // add control
+    var attrcontrol = L.control.attribution({ position: 'topright', prefix: false }).addTo(mymap);
+    // mymap events
+    // mymap.on("mousemove", function (e) {
+        // var latlng = e.latlng;
+        // var layerpoint = e.layerPoint;
+        // var containerpoint = e.containerPoint;
+        // var html = [];
+        // html.push('<span>lng：' + latlng.lng + '&nbsp&nbsplat：' + latlng.lat + '</span><br>');
+        // html.push('<span>layerPoint:[' + layerpoint.x + ',' + layerpoint.y + ']</span><br>');
+        // html.push('<span>containerPoint:[' + containerpoint.x + ',' + containerpoint.y + ']</span><br>');
+        // html.push('<span>zoomLevel:' + mymap.getZoom() + '</span><br>');
+        // html = html.join('');
+        // if(attrcontrol) {
+        //     var container = attrcontrol.getContainer();
+        //     container.innerHTML = html;
+        // }
+    // }, this);
+    </script>
+</body>
+
+</html>
