@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>tms</title>
+    <link rel="stylesheet" href="../dist/leaflet.css">
+    <script type="text/javascript" src="../dist/leaflet-src.js"></script>
+</head>
+
+<body>
+    <div id="map" style="position:absolute;left:0;top:0;bottom:0;right:0;overflow: hidden;width:100%;height:100%;"></div>
+
+    <script type="text/javascript">
+    // init map 
+    var map = L.map('map', {
+        crs: L.CRS.EPSG4326,
+        center: [36.12167,120.3163],
+        zoom: 6,
+        worldCopyJump: false
+    });
+
+    // https://rovertang.com/labs/GMAPIv3_Offline/expotile/{z}/{x}/{y}.png
+    // L.tileLayer('https://rovertang.com/labs/GMAPIv3_Offline/expotile/14/13721/9687.png', {
+    //     tms: false
+    // }).addTo(map);
+
+    // var tms_ne = L.tileLayer('https://demo.boundlessgeo.com/geoserver/gwc/service/tms/1.0.0/ne:ne@EPSG:900913@png/{z}/{x}/{y}.png', {
+    //     tms: true
+    // }).addTo(map);
+
+    // L.tileLayer("http://t{s}.tianditu.com/DataServer?T=vec_w&X={x}&Y={y}&L={z}&tk={key}", {
+    //     subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+    //     key: "174705aebfe31b79b3587279e211cb9a"
+    // }).addTo(map);
+    // L.tileLayer("http://t{s}.tianditu.com/DataServer?T=cva_w&X={x}&Y={y}&L={z}&tk={key}", {
+    //     subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+    //     key: "174705aebfe31b79b3587279e211cb9a"
+    // }).addTo(map);
+
+    L.tileLayer('http://127.0.0.1:8080/geoserver/gwc/service/tms/1.0.0/china@EPSG%3A4326@png/{z}/{x}/{y}.png', {
+        tms: true
+    }).addTo(map);
+    
+    // PGIS
+    // L.tileLayer('http://10.49.129.220:9080/EzServer/Maps/qdsl2018/EzMap?Service=getImage&Type=RGB&ZoomOffset=4&Col={x}&Row={y}&Zoom={z}&V=1.0.0', { 
+    //     zoomOffset: 0, // or 4
+    //     tms: true 
+    // }).addTo(map);
+
+    L.marker([36.12167,120.3163], {title: 'PGIS'}).addTo(map);
+    // L.marker([34.261012,108.942372], {title: 'wgs84坐标，定位点：西安转盘中心钟楼'}).addTo(map);
+    </script>
+
+    <script>
+    var customTileLayer = L.TileLayer.extend({
+        // getTileUrl: function (coords) {
+        //     var data = {
+        //         x: coords.x + 1706,
+        //         // x: coords.x,
+        //         y: coords.y,
+        //         z: this._getZoomForUrl()
+        //     };
+        //     if (this._map && !this._map.options.crs.infinite) {
+        //         var invertedY = this._globalTileRange.max.y - coords.y;
+        //         if (this.options.tms) {
+        //             data['y'] = invertedY;
+        //         }
+        //         data['-y'] = invertedY;
+        //     }
+        //     data.y += 304;
+        //     return L.Util.template(this._url, data);
+        // },
+        createTile: function (coords) {
+            var tile = document.createElement('div');
+            // tile.innerHTML = [coords.x, coords.y, coords.z].join(', ');
+            tile.innerHTML = this.getTileUrl(coords);
+            tile.style.outline = '1px solid red';
+            tile.style.color = 'red';
+            tile.style.fontWeight = 'bold';
+            tile.style.fontSize = '22px';
+            return tile;
+        }
+    });
+
+    new customTileLayer('{x}/{y}/{z}', {
+        zoomOffset: 0,
+        tms: true
+    }).addTo(map);
+    </script>
+</body>
+
+</html>
